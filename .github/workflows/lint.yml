@@ -1,0 +1,88 @@
+# 🪶 hazel: Minimal, simple, and open source content delivery network made in Kotlin
+# Copyright 2022 Noel <cutie@floofy.dev>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: ktlint
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'issue/gh-**'
+      - nightly
+      - master
+
+    paths-ignore:
+      - '.github/**'
+      - '.husky/**'
+      - '.vscode/**'
+      - 'assets/**'
+      - 'locales/**'
+      - 'docker/**'
+      - '.dockerignore'
+      - '.eslintignore'
+      - '.gitignore'
+      - '**.md'
+      - 'LICENSE'
+      - 'renovate.json'
+
+  pull_request:
+    branches:
+      - 'feature/**'
+      - 'issue/gh-**'
+      - master
+      - nightly
+
+    paths-ignore:
+      - '.github/**'
+      - '.husky/**'
+      - '.vscode/**'
+      - 'assets/**'
+      - 'locales/**'
+      - 'docker/**'
+      - '.dockerignore'
+      - '.eslintignore'
+      - '.gitignore'
+      - '**.md'
+      - 'LICENSE'
+      - 'renovate.json'
+jobs:
+  ktlint:
+    name: Linting and Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checks out the repository
+        uses: actions/checkout@v3
+
+      - name: Sets up Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin # Eclipse Temurin is <3
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Lets ./gradlew be executable
+        run: chmod +x ./gradlew
+
+      - name: Lints the repository for any code errors
+        run: ./gradlew spotlessCheck --no-daemon
+
+      - name: Builds the project for any errors
+        run: ./gradlew compileKotlin --no-daemon
+
+# TODO: include tests
+#      - name: Unit test project
+#        run: ./gradlew kotest
+
