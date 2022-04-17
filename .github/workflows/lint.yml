@@ -82,7 +82,5 @@ jobs:
       - name: Builds the project for any errors
         run: ./gradlew compileKotlin --no-daemon
 
-# TODO: include tests
-#      - name: Unit test project
-#        run: ./gradlew kotest
-
+      - name: Unit test project
+        run: ./gradlew kotest --no-daemon
