@@ -33,6 +33,7 @@ buildscript {
         classpath(kotlin("gradle-plugin", version = "1.6.20"))
         classpath(kotlin("serialization", version = "1.6.20"))
         classpath("gay.floof.utils:gradle-utils:1.3.0")
+        classpath("io.kotest:kotest-gradle-plugin:0.3.9")
     }
 }
 
@@ -40,6 +41,7 @@ plugins {
     kotlin("plugin.serialization") version "1.6.20"
     id("com.diffplug.spotless") version "6.4.2"
     kotlin("jvm") version "1.6.20"
+    id("io.kotest") version "0.3.9"
     application
 }
 
@@ -62,8 +64,8 @@ val COMMIT_HASH by lazy {
 }
 
 println("+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+")
-println("|> Kotlin: ${KotlinVersion.CURRENT}")
-println("|> Gradle: ${GradleVersion.current().toString().replace("Gradle", "").trim()}") // pipe operator in kotlin when :woeme:
+println("|> Kotlin: v${KotlinVersion.CURRENT}")
+println("|> Gradle: v${GradleVersion.current().toString().replace("Gradle", "").trim()}") // pipe operator in kotlin when :woeme:
 println("|> hazel: $VERSION ($COMMIT_HASH)")
 println("|> Java: $JAVA_VERSION (JVM: ${System.getProperty("java.version", "Unknown")} [${System.getProperty("java.vendor", "Unknown")}] | JRE: ${Runtime.version()})")
 println("+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+")
@@ -86,6 +88,7 @@ dependencies {
     // BOMs
     api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.3.2"))
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
+    testImplementation(platform("io.kotest:kotest-bom:5.2.3"))
     api(platform("io.ktor:ktor-bom:2.0.0"))
 
     // kotlinx.coroutines
@@ -142,6 +145,11 @@ dependencies {
 
     // Argon2
     implementation("de.mkammerer:argon2-jvm:2.11")
+
+    // Testing utilities
+    testImplementation("io.kotest:kotest-runner-junit5")
+    testImplementation("io.kotest:kotest-assertions-core")
+    testImplementation("io.kotest:kotest-property")
 }
 
 spotless {

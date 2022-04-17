@@ -23,6 +23,8 @@ import gay.floof.utils.slf4j.logging
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.security.KeyStore
 import java.security.KeyStore.PasswordProtection
 import javax.crypto.spec.SecretKeySpec
@@ -30,11 +32,19 @@ import javax.crypto.spec.SecretKeySpec
 /**
  * Represents the wrapper for Java's Keystore functionality. hazel uses keystores
  * for user authentication for sensitive endpoints (i.e, `POST`/`PUT`/`DELETE`)
+ *
+ * [deleteOnClose] is only for testing purposes, not meant in production!
  */
-class KeystoreWrapper(private val config: KeystoreConfig, private val argon2: Argon2): AutoCloseable {
+class KeystoreWrapper(
+    private val config: KeystoreConfig,
+    private val argon2: Argon2,
+    private val deleteOnClose: Boolean = false
+): AutoCloseable {
     private val keystore = KeyStore.getInstance(KeyStore.getDefaultType())
     private val log by logging<KeystoreWrapper>()
-    private var closed = false
+
+    // this is only visible for testing
+    var closed = false
 
     fun init() {
         // nop this if it's already closed; we do not re-create this instance
@@ -45,15 +55,26 @@ class KeystoreWrapper(private val config: KeystoreConfig, private val argon2: Ar
 
         log.info("Creating users keystore...")
         val passwordArray = (config.password ?: "").toCharArray()
-        keystore.load(FileInputStream(File(config.file)), passwordArray)
+        val file = File(config.file)
+
+        if (!file.exists()) {
+            keystore.load(null, passwordArray)
+        } else {
+            keystore.load(FileInputStream(file), passwordArray)
+        }
 
         log.info("Done!")
     }
 
     fun addUser(username: String, password: String) {
-        assert(!closed) { "Keystore is currently closed, cannot do operation: ADD_USER $username -> [...]" }
+        if (closed) {
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: ADD_USER $username -> [...]")
+        }
 
-        // TODO: do not actually encode the password here >:(
+        // Check if the alias is already there
+        if (keystore.containsAlias("users:$username"))
+            throw IllegalStateException("User $username already exists in keystore!")
+
         val hash = argon2.hash(10, 65536, 1, password.toByteArray())
         val spec = SecretKeySpec(hash.toByteArray(), "AES")
         keystore.setEntry("users:$username", KeyStore.SecretKeyEntry(spec), PasswordProtection((config.password ?: "").toCharArray()))
@@ -61,7 +82,9 @@ class KeystoreWrapper(private val config: KeystoreConfig, private val argon2: Ar
     }
 
     fun checkIfValid(username: String, password: String): Boolean {
-        assert(!closed) { "Keystore is currently closed, cannot do operation: IS_VALID $username -> [...]" }
+        if (closed) {
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: IS_VALID $username -> [...]")
+        }
 
         if (!keystore.containsAlias("users:$username")) return false
 
@@ -77,12 +100,25 @@ class KeystoreWrapper(private val config: KeystoreConfig, private val argon2: Ar
 
         closed = true
 
-        save()
-        log.info("Closed Keystore! We will no longer to use operations.")
+        if (deleteOnClose) {
+            val aliases = keystore.aliases()
+            while (aliases.hasMoreElements()) {
+                val alias = aliases.nextElement()
+                keystore.deleteEntry(alias)
+            }
+
+            Files.deleteIfExists(Paths.get(config.file))
+        } else {
+            save()
+        }
+
+        log.info("Successfully closed keystore! We will no longer be able to execute operations. :<")
     }
 
     private fun save() {
-        assert(!closed) { "Keystore is currently closed, cannot do operation: SAVE KEYSTORE" }
+        if (closed) {
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: SAVE KEYSTORE")
+        }
 
         log.debug("Flushing keystore to filesystem...")
         val fos = FileOutputStream(File(config.file))
