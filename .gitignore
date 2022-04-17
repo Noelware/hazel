@@ -563,6 +563,6 @@ FodyWeavers.xsd
 
 # other
 config.toml
-data/
+.hazel/data
 src/main/resources/config/logging.properties
 !src/main/resources/config/logging.example.properties
