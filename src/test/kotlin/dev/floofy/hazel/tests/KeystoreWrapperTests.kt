@@ -23,6 +23,7 @@ import de.mkammerer.argon2.Argon2Factory
 import dev.floofy.hazel.core.KeystoreWrapper
 import dev.floofy.hazel.data.KeystoreConfig
 import io.kotest.assertions.throwables.shouldNotThrow
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.test.TestCaseOrder
 import io.kotest.matchers.shouldBe
@@ -34,7 +35,7 @@ class KeystoreWrapperTests: DescribeSpec({
             file = "./owo.jks",
             password = "owo da uwu"
         ),
-        Argon2Factory.create(), true
+        Argon2Factory.create()
     )
 
     // The test order is so for each test that is executed, it will run
@@ -47,7 +48,7 @@ class KeystoreWrapperTests: DescribeSpec({
     }
 
     afterSpec {
-        keystore.close()
+        keystore.deleteKeystore()
     }
 
     describe("dev.floofy.hazel.tests.KeystoreWrapper") {
@@ -64,6 +65,20 @@ class KeystoreWrapperTests: DescribeSpec({
             }
 
             keystore.checkIfValid("noel", "owo da uwu") shouldBe true
+        }
+
+        it("should delete the noel user from keystore") {
+            keystore.closed shouldNotBe true
+
+            shouldNotThrow<IllegalStateException> {
+                keystore.deleteUser("noel")
+            }
+
+            val exception = shouldThrow<IllegalStateException> {
+                keystore.deleteUser("hazel")
+            }
+
+            exception.message shouldBe "User hazel is non existent in keystore."
         }
     }
 })

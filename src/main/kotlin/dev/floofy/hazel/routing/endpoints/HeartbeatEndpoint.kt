@@ -16,3 +16,14 @@
  */
 
 package dev.floofy.hazel.routing.endpoints
+
+import dev.floofy.hazel.routing.AbstractEndpoint
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+
+class HeartbeatEndpoint: AbstractEndpoint("/heartbeat") {
+    override suspend fun call(call: ApplicationCall) {
+        call.respond(HttpStatusCode.OK, "OK")
+    }
+}

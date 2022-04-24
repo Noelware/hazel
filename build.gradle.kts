@@ -77,6 +77,7 @@ repositories {
     noelware(snapshots = true)
     mavenCentral()
     mavenLocal()
+    noelware()
     noel()
 }
 
@@ -110,7 +111,14 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.12.0")
 
     // Ktor Server
+    implementation("io.ktor:ktor-serialization-kotlinx-json")
+    implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-server-auto-head-response")
+    implementation("io.ktor:ktor-server-default-headers")
+    implementation("io.ktor:ktor-server-status-pages")
+    implementation("io.ktor:ktor-serialization")
     implementation("io.ktor:ktor-server-netty")
+    implementation("io.ktor:ktor-server-cors")
 
     // Koin
     implementation("io.insert-koin:koin-core:3.1.6")
@@ -135,9 +143,9 @@ dependencies {
     implementation("io.prometheus:simpleclient:0.15.0")
 
     // Remi
-    implementation("org.noelware.remi:remi-support-s3:0.0.4-snapshot")
-    implementation("org.noelware.remi:remi-support-fs:0.0.4-snapshot")
-    api("org.noelware.remi:remi-core:0.0.4-snapshot")
+    implementation("org.noelware.remi:remi-support-s3:0.1-beta")
+    implementation("org.noelware.remi:remi-support-fs:0.1-beta")
+    api("org.noelware.remi:remi-core:0.1-beta")
 
     // TOML
     implementation("com.akuleshov7:ktoml-core:0.2.11")

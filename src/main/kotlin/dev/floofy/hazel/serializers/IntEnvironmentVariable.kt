@@ -23,22 +23,22 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-object IntEnvironmentVariable: KSerializer<Int> {
-    override val descriptor: SerialDescriptor = Int.serializer().descriptor
+object IntEnvironmentVariable: KSerializer<Long> {
+    override val descriptor: SerialDescriptor = Long.serializer().descriptor
 
-    override fun deserialize(decoder: Decoder): Int {
+    override fun deserialize(decoder: Decoder): Long {
         val int = try {
             decoder.decodeString()
         } catch (e: Exception) {
             null
-        } ?: return decoder.decodeInt()
+        } ?: return decoder.decodeLong()
 
         val matcher = ENV_KEY_REGEX.toPattern().matcher(int)
-        if (!matcher.matches()) return Integer.parseInt(int)
+        if (!matcher.matches()) return int.toLongOrNull() ?: error("Unable to cast value from a string -> long :(")
 
         val envKey = matcher.group(1)
-        return Integer.parseInt(System.getenv(envKey))
+        return System.getenv(envKey).toLongOrNull() ?: error("Unable to cast value from a string -> long")
     }
 
-    override fun serialize(encoder: Encoder, value: Int) = Int.serializer().serialize(encoder, value)
+    override fun serialize(encoder: Encoder, value: Long) = Long.serializer().serialize(encoder, value)
 }

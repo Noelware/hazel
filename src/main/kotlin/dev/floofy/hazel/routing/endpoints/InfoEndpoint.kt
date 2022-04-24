@@ -16,3 +16,30 @@
  */
 
 package dev.floofy.hazel.routing.endpoints
+
+import dev.floofy.hazel.HazelInfo
+import dev.floofy.hazel.routing.AbstractEndpoint
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+
+class InfoEndpoint: AbstractEndpoint("/info") {
+    override suspend fun call(call: ApplicationCall) {
+        call.respond(
+            HttpStatusCode.OK,
+            buildJsonObject {
+                put("success", true)
+                put(
+                    "data",
+                    buildJsonObject {
+                        put("version", HazelInfo.version)
+                        put("commit_sha", HazelInfo.commitHash)
+                        put("build_date", HazelInfo.buildDate)
+                    }
+                )
+            }
+        )
+    }
+}

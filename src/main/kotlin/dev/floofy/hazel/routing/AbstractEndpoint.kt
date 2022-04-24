@@ -16,3 +16,19 @@
  */
 
 package dev.floofy.hazel.routing
+
+import io.ktor.http.*
+import io.ktor.server.application.*
+
+/**
+ * Represents an endpoint that resides on the server.
+ * @param path The path to use, must start with `/`
+ * @param method the [HttpMethod] to use for this method.
+ */
+abstract class AbstractEndpoint(val path: String, val methods: List<HttpMethod> = listOf(HttpMethod.Get)) {
+    /**
+     * Method to call when the route is being executed.
+     * @param call The main [ApplicationCall] that is used when handled.
+     */
+    abstract suspend fun call(call: ApplicationCall)
+}

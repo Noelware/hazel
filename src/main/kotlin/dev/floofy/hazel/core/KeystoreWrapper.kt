@@ -30,15 +30,12 @@ import java.security.KeyStore.PasswordProtection
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * Represents the wrapper for Java's Keystore functionality. hazel uses keystores
+ * Represents the wrapper for Java's Keystore functionality. hazel uses a keystore
  * for user authentication for sensitive endpoints (i.e, `POST`/`PUT`/`DELETE`)
- *
- * [deleteOnClose] is only for testing purposes, not meant in production!
  */
 class KeystoreWrapper(
     private val config: KeystoreConfig,
-    private val argon2: Argon2,
-    private val deleteOnClose: Boolean = false
+    private val argon2: Argon2
 ): AutoCloseable {
     private val keystore = KeyStore.getInstance(KeyStore.getDefaultType())
     private val log by logging<KeystoreWrapper>()
@@ -94,24 +91,40 @@ class KeystoreWrapper(
         return argon2.verify(value, password.toByteArray())
     }
 
+    fun deleteUser(username: String) {
+        if (closed)
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: DELETE USER $username")
+
+        if (!keystore.containsAlias("users:$username"))
+            throw IllegalStateException("User $username is non existent in keystore.")
+
+        keystore.deleteEntry("users:$username")
+    }
+
+    fun deleteKeystore() {
+        if (closed)
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: DELETE KEYSTORE IN ${config.file}")
+
+        log.warn("!!! THIS IS A DESTRUCTIVE OPERATION DO NOT DO THIS UNLESS YOU'RE RE-DOING YOUR INSTALLATION !!!")
+        val aliases = keystore.aliases()
+        while (aliases.hasMoreElements()) {
+            val alias = aliases.nextElement()
+            keystore.deleteEntry(alias)
+        }
+
+        Files.deleteIfExists(Paths.get(config.file))
+
+        closed = true
+        log.warn("Keystore is now successfully deleted from disk, all future authentication will not succeed!")
+    }
+
     override fun close() {
         // If it's closed already, do nothing.
         if (closed) return
 
+        save() // flush to disk so we can load it back
+
         closed = true
-
-        if (deleteOnClose) {
-            val aliases = keystore.aliases()
-            while (aliases.hasMoreElements()) {
-                val alias = aliases.nextElement()
-                keystore.deleteEntry(alias)
-            }
-
-            Files.deleteIfExists(Paths.get(config.file))
-        } else {
-            save()
-        }
-
         log.info("Successfully closed keystore! We will no longer be able to execute operations. :<")
     }
 

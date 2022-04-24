@@ -15,23 +15,22 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel.routing.endpoints
+package dev.floofy.hazel.plugins
 
-import dev.floofy.hazel.routing.AbstractEndpoint
-import io.ktor.http.*
+import dev.floofy.hazel.extensions.ifNotNull
 import io.ktor.server.application.*
-import io.ktor.server.response.*
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import io.ktor.server.request.*
+import org.slf4j.MDC
 
-class MainEndpoint: AbstractEndpoint("/") {
-    override suspend fun call(call: ApplicationCall) {
-        call.respond(
-            HttpStatusCode.OK,
-            buildJsonObject {
-                put("success", true)
-                put("message", "hello world!")
-            }
-        )
+val UserAgentPlugin = createApplicationPlugin("NinoUserAgentPlugin") {
+    onCall { c ->
+        val userAgent = c.request.userAgent()
+        userAgent.ifNotNull {
+            MDC.put("user_agent", it)
+        }
+    }
+
+    onCallReceive { _, _ ->
+        MDC.remove("user_agent")
     }
 }

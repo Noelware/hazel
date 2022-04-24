@@ -39,13 +39,13 @@ data class KtorServerConfig(
      * that cannot be immediately processed.
      */
     @SerialName("request_queue_limit")
-    val requestQueueLimit: Int = 16,
+    val requestQueueLimit: Long = 16,
 
     /**
      * Number of concurrently running requests from the same HTTP pipeline
      */
     @SerialName("running_limit")
-    val runningLimit: Int = 10,
+    val runningLimit: Long = 10,
 
     /**
      * Do not create separate call event groups and reuse worker
@@ -58,13 +58,13 @@ data class KtorServerConfig(
      * Timeout in seconds for sending responses to the client.
      */
     @SerialName("response_write_timeout")
-    val responseWriteTimeoutSeconds: Int = 10,
+    val responseWriteTimeoutSeconds: Long = 10,
 
     /**
      * Timeout in seconds to read incoming requests from the client, "0" = infinite.
      */
     @SerialName("request_read_timeout")
-    val requestReadTimeout: Int = 0,
+    val requestReadTimeout: Long = 0,
 
     /**
      * If this is set to `true`, this will enable TCP keep alive for
@@ -86,5 +86,5 @@ data class KtorServerConfig(
     val host: String = "0.0.0.0",
 
     @Serializable(with = IntEnvironmentVariable::class)
-    val port: Int = 4949
+    val port: Long = 4949
 )

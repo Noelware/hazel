@@ -57,6 +57,7 @@
                         <throwableMessage />
                         <throwableRootCauseClassName />
                         <throwableRootCauseMessage />
+                        <includeMdcKeyName>user_agent</includeMdcKeyName>
                     </providers>
 
                     <customFields>{"product":"hazel","vendor":"Noel"}</customFields>

@@ -19,7 +19,12 @@ package dev.floofy.hazel.core
 
 import dev.floofy.hazel.data.StorageClass
 import dev.floofy.hazel.data.StorageConfig
+import dev.floofy.hazel.extensions.formatSize
 import gay.floof.utils.slf4j.logging
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import org.noelware.remi.core.StorageTrailer
 import org.noelware.remi.filesystem.FilesystemStorageTrailer
@@ -38,19 +43,19 @@ class StorageWrapper(config: StorageConfig) {
 
         trailer = when (config.storageClass) {
             StorageClass.FS -> {
-                assert(config.fs != null) { "Configuration for filesystem configuration is missing." }
+                assert(config.fs != null) { "Configuration for the local disk is missing." }
 
                 FilesystemStorageTrailer(config.fs!!.directory)
             }
 
             StorageClass.FILESYSTEM -> {
-                assert(config.filesystem != null) { "Configuration for filesystem configuration is missing." }
+                assert(config.filesystem != null) { "Configuration for the local disk is missing." }
 
                 FilesystemStorageTrailer(config.filesystem!!.directory)
             }
 
             StorageClass.S3 -> {
-                assert(config.s3 != null) { "" }
+                assert(config.s3 != null) { "Configuration for Amazon S3 is missing." }
 
                 S3StorageTrailer(config.s3!!)
             }
@@ -99,4 +104,14 @@ class StorageWrapper(config: StorageConfig) {
         stream: InputStream,
         contentType: String = "application/octet-stream"
     ): Boolean = trailer.upload(path, stream, contentType)
+
+    suspend fun addRoutesBasedOffFiles(routing: Routing) {
+        val files = trailer.listAll()
+        for (file in files) {
+            println("file ${file.name}:")
+            println("   contentType: ${file.contentType}")
+            println("   createdAt:   ${file.createdAt}")
+            println("   size:        ${file.size.formatSize()}")
+        }
+    }
 }

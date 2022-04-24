@@ -15,23 +15,9 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel.routing.endpoints
+package dev.floofy.hazel.extensions
 
-import dev.floofy.hazel.routing.AbstractEndpoint
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-
-class MainEndpoint: AbstractEndpoint("/") {
-    override suspend fun call(call: ApplicationCall) {
-        call.respond(
-            HttpStatusCode.OK,
-            buildJsonObject {
-                put("success", true)
-                put("message", "hello world!")
-            }
-        )
-    }
-}
+/**
+ * Calls the [block] if [T] is not null, returns as [U].
+ */
+fun <T, U> T?.ifNotNull(block: (T) -> U): U? = if (this != null) block(this) else null
