@@ -29,7 +29,7 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.17.2")
-        classpath("com.diffplug.spotless:spotless-plugin-gradle:6.4.2")
+        classpath("com.diffplug.spotless:spotless-plugin-gradle:6.5.0")
         classpath(kotlin("gradle-plugin", version = "1.6.20"))
         classpath(kotlin("serialization", version = "1.6.20"))
         classpath("gay.floof.utils:gradle-utils:1.3.0")
@@ -38,9 +38,9 @@ buildscript {
 }
 
 plugins {
-    kotlin("plugin.serialization") version "1.6.20"
-    id("com.diffplug.spotless") version "6.4.2"
-    kotlin("jvm") version "1.6.20"
+    kotlin("plugin.serialization") version "1.6.21"
+    id("com.diffplug.spotless") version "6.5.0"
+    kotlin("jvm") version "1.6.21"
     id("io.kotest") version "0.3.9"
     application
 }
@@ -130,7 +130,7 @@ dependencies {
     api("org.slf4j:slf4j-api:1.7.36")
 
     // Conditional logic for logback
-    implementation("org.codehaus.janino:janino:3.1.6")
+    implementation("org.codehaus.janino:janino:3.1.7")
 
     // Sentry
     implementation("io.sentry:sentry:5.7.3")
