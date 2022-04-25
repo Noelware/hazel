@@ -90,6 +90,7 @@ dependencies {
     api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.3.2"))
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
     testImplementation(platform("io.kotest:kotest-bom:5.2.3"))
+    api(platform("org.noelware.remi:remi-bom:0.1.1-beta"))
     api(platform("io.ktor:ktor-bom:2.0.0"))
 
     // kotlinx.coroutines
@@ -118,7 +119,11 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-serialization")
     implementation("io.ktor:ktor-server-netty")
+    implementation("io.ktor:ktor-server-auth")
     implementation("io.ktor:ktor-server-cors")
+
+    // Ktor Client (for `hazel ping`)
+    implementation("io.ktor:ktor-client-okhttp")
 
     // Koin
     implementation("io.insert-koin:koin-core:3.1.6")
@@ -143,9 +148,9 @@ dependencies {
     implementation("io.prometheus:simpleclient:0.15.0")
 
     // Remi
-    implementation("org.noelware.remi:remi-support-s3:0.1-beta")
-    implementation("org.noelware.remi:remi-support-fs:0.1-beta")
-    api("org.noelware.remi:remi-core:0.1-beta")
+    implementation("org.noelware.remi:remi-support-s3")
+    implementation("org.noelware.remi:remi-support-fs")
+    api("org.noelware.remi:remi-core")
 
     // TOML
     implementation("com.akuleshov7:ktoml-core:0.2.11")
@@ -153,6 +158,9 @@ dependencies {
 
     // Argon2
     implementation("de.mkammerer:argon2-jvm:2.11")
+
+    // CLI handler
+    implementation("com.github.ajalt.clikt:clikt:3.4.1")
 
     // Testing utilities
     testImplementation("io.kotest:kotest-runner-junit5")
@@ -182,7 +190,7 @@ spotless {
 }
 
 application {
-    mainClass.set("dev.floofy.hazel.Bootstrap")
+    mainClass.set("dev.floofy.hazel.Main")
 }
 
 java {

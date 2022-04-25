@@ -39,8 +39,7 @@ import kotlin.system.exitProcess
 object Bootstrap {
     private val log by logging<Bootstrap>()
 
-    @JvmStatic
-    fun main(args: Array<String>) {
+    fun bootstrap(configPath: String?) {
         Thread.currentThread().name = "Hazel-BootstrapThread"
         log.info("Starting up hazel...")
 
@@ -49,14 +48,14 @@ object Bootstrap {
         installDefaultThreadExceptionHandler()
 
         // Configure the Hazel config
-        val configPath = System.getenv("HAZEL_CONFIG_PATH") ?: "./config.toml"
-        val configFile = File(configPath)
+        val fullConfigPath = configPath ?: "./config.toml"
+        val configFile = File(fullConfigPath)
 
         if (!configFile.exists())
-            throw IllegalArgumentException("Missing configuration path in $configPath.")
+            throw IllegalArgumentException("Missing configuration path in $fullConfigPath.")
 
         if (configFile.extension != "toml")
-            throw IllegalStateException("Configuration file $configPath must be a TOML file (must be `.toml` extension, not ${configFile.extension})")
+            throw IllegalStateException("Configuration file $fullConfigPath must be a TOML file (must be `.toml` extension, not ${configFile.extension})")
 
         val toml = Toml(
             TomlConfig(

@@ -23,9 +23,13 @@ import dev.floofy.hazel.extensions.formatSize
 import gay.floof.utils.slf4j.logging
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.noelware.remi.core.StorageTrailer
 import org.noelware.remi.filesystem.FilesystemStorageTrailer
 import org.noelware.remi.s3.S3StorageTrailer
@@ -112,6 +116,60 @@ class StorageWrapper(config: StorageConfig) {
             println("   contentType: ${file.contentType}")
             println("   createdAt:   ${file.createdAt}")
             println("   size:        ${file.size.formatSize()}")
+
+            routing.route("/${file.name}", HttpMethod.Get) {
+                handle {
+                    val shouldDownload = when {
+                        call.request.queryParameters["download"] != null -> {
+                            val download = call.request.queryParameters["download"]
+                            download != null
+                        }
+
+                        file.contentType.startsWith("application/octet-stream") -> true
+                        else -> false
+                    }
+
+                    val contentType = ContentType.parse(file.contentType)
+                    if (shouldDownload) {
+                        call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"${file.name.split("/").last()}\"")
+                    }
+
+                    if (file.original != null) {
+                        call.respondFile(file.original!!)
+                    } else {
+                        call.respondOutputStream(contentType, HttpStatusCode.OK) {
+                            val stream = file.toInputStream()
+                            stream.use { `is` ->
+                                `is`.transferTo(this)
+                            }
+                        }
+                    }
+                }
+            }
+
+            routing.route("/${file.name}", HttpMethod.Delete) {
+                authenticate("hazel") {
+                    handle {
+                        val path = call.request.uri
+                        val result = trailer.delete(path.substring(1))
+                        if (result) {
+                            call.respond(
+                                HttpStatusCode.OK,
+                                buildJsonObject {
+                                    put("success", true)
+                                }
+                            )
+                        } else {
+                            call.respond(
+                                HttpStatusCode.BadRequest,
+                                buildJsonObject {
+                                    put("success", false)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

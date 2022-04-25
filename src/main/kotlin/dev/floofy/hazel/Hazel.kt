@@ -17,6 +17,7 @@
 
 package dev.floofy.hazel
 
+import dev.floofy.hazel.core.KeystoreWrapper
 import dev.floofy.hazel.core.StorageWrapper
 import dev.floofy.hazel.core.createThreadFactory
 import dev.floofy.hazel.data.Config
@@ -30,6 +31,7 @@ import gay.floof.utils.slf4j.logging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.autohead.*
@@ -95,12 +97,23 @@ class Hazel {
 
             module {
                 val json: Json by inject()
+                val keystore: KeystoreWrapper by inject()
 
                 install(AutoHeadResponse)
                 install(KtorLoggingPlugin)
                 install(UserAgentPlugin)
                 install(ContentNegotiation) {
                     this.json(json)
+                }
+
+                install(Authentication) {
+                    basic("hazel") {
+                        realm = "Noel/Hazel"
+                        validate { creds ->
+                            val user = keystore.checkIfValid(creds.name, creds.password)
+                            if (user) UserIdPrincipal(creds.name) else null
+                        }
+                    }
                 }
 
                 install(CORS) {

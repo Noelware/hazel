@@ -43,6 +43,27 @@ class KeystoreWrapper(
     // this is only visible for testing
     var closed = false
 
+    fun createIfNotExists() {
+        // nop this if it's already closed; we do not re-create this instance
+        if (closed) return
+        if (config.password == null) {
+            log.warn("It is recommended to set a password for your keystore!")
+        }
+
+        log.debug("Checking if keystore exists in ${config.file}...")
+        val passwordArray = (config.password ?: "").toCharArray()
+        val file = File(config.file)
+
+        if (!file.exists()) {
+            keystore.load(null, passwordArray)
+        } else {
+            throw IllegalStateException("Keystore already exists in path ${config.file}!")
+        }
+
+        log.debug("Done, now flushing to filesystem...")
+        close()
+    }
+
     fun init() {
         // nop this if it's already closed; we do not re-create this instance
         if (closed) return
@@ -50,7 +71,7 @@ class KeystoreWrapper(
             log.warn("It is recommended to set a password for your keystore!")
         }
 
-        log.info("Creating users keystore...")
+        log.debug("Loading keystore in path ${config.file}...")
         val passwordArray = (config.password ?: "").toCharArray()
         val file = File(config.file)
 
@@ -60,7 +81,54 @@ class KeystoreWrapper(
             keystore.load(FileInputStream(file), passwordArray)
         }
 
-        log.info("Done!")
+        log.debug("Done!")
+    }
+
+    fun initUnsafe() {
+        // nop this if it's already closed; we do not re-create this instance
+        if (closed) return
+        if (config.password == null) {
+            log.warn("It is recommended to set a password for your keystore!")
+        }
+
+        log.debug("Loading keystore in path ${config.file}...")
+        val passwordArray = (config.password ?: "").toCharArray()
+        val file = File(config.file)
+
+        if (!file.exists())
+            throw IllegalStateException("Keystore file doesn't exist in path ${config.file}, please run `hazel keystore create` to generate a keystore!")
+
+        keystore.load(FileInputStream(file), passwordArray)
+        log.debug("Done!")
+    }
+
+    operator fun get(key: String): String {
+        if (closed)
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: GET $key")
+
+        if (!keystore.containsAlias(key))
+            throw IllegalStateException("Alias $key doesn't exist in keystore.")
+
+        val k = keystore.getKey(key, (config.password ?: "").toCharArray())
+        return String(k.encoded)
+    }
+
+    fun list(): List<String> {
+        if (closed)
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: LIST_KEYS")
+
+        return keystore.aliases().toList()
+    }
+
+    fun addValue(key: String, value: String) {
+        if (closed)
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: ADD_VALUE $key -> [...]")
+
+        if (keystore.containsAlias(key))
+            throw IllegalStateException("Key $key already exists.")
+
+        keystore.setEntry(key, KeyStore.SecretKeyEntry(SecretKeySpec(value.toByteArray(), "AES")), PasswordProtection((config.password ?: "").toCharArray()))
+        save()
     }
 
     fun addUser(username: String, password: String) {

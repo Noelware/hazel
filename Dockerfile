@@ -46,10 +46,13 @@ WORKDIR /app/noel/hazel
 COPY docker /app/noel/hazel/scripts
 
 # Copy the built distribution from the `builder` stage.
-COPY --from=builder /build/hazel/install/build/hazel .
+COPY --from=builder /build/hazel/build/install/hazel .
 
 # Make sure the Docker scripts are executable
 RUN chmod +x /app/noel/hazel/scripts/docker-entrypoint.sh /app/noel/hazel/scripts/run.sh
+
+# Create a symbolic link so you can execute `hazel` outside
+RUN ln -s /app/noel/hazel/bin/hazel /usr/local/bin/hazel
 
 # Do not run the container as the root user for security reasons.
 USER 1001
