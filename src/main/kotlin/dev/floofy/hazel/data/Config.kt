@@ -21,6 +21,9 @@ import kotlinx.serialization.SerialName
 
 @kotlinx.serialization.Serializable
 data class Config(
+    @SerialName("base_url")
+    val baseUrl: String = "",
+
     @SerialName("sentry_dsn")
     val sentryDsn: String? = null,
     val keystore: KeystoreConfig = KeystoreConfig(),

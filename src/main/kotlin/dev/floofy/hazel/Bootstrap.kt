@@ -19,7 +19,6 @@ package dev.floofy.hazel
 
 import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlConfig
-import de.mkammerer.argon2.Argon2Factory
 import dev.floofy.hazel.core.KeystoreWrapper
 import dev.floofy.hazel.core.StorageWrapper
 import dev.floofy.hazel.data.Config
@@ -73,8 +72,7 @@ object Bootstrap {
         }
 
         val config = toml.decodeFromString(Config.serializer(), configFile.readText())
-        val argon2 = Argon2Factory.create()
-        val keystore = KeystoreWrapper(config.keystore, argon2)
+        val keystore = KeystoreWrapper(config.keystore)
         val storage = StorageWrapper(config.storage)
 
         keystore.init()
@@ -85,7 +83,6 @@ object Bootstrap {
                 globalModule,
                 endpointsModule,
                 module {
-                    single { argon2 }
                     single { toml }
                     single { json }
                     single { config }
@@ -124,6 +121,8 @@ object Bootstrap {
 
                     hazel.destroy()
                     keystore.close()
+                } else {
+                    log.warn("Koin was not started, not destroying server (just yet!)")
                 }
 
                 log.warn("Hazel has completely shutdown, goodbye! ｡･ﾟﾟ･(థ Д థ。)･ﾟﾟ･｡")

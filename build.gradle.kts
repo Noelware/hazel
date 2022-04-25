@@ -90,7 +90,7 @@ dependencies {
     api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.3.2"))
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
     testImplementation(platform("io.kotest:kotest-bom:5.2.3"))
-    api(platform("org.noelware.remi:remi-bom:0.1.1-beta"))
+    api(platform("org.noelware.remi:remi-bom:0.1.2-beta"))
     api(platform("io.ktor:ktor-bom:2.0.0"))
 
     // kotlinx.coroutines
@@ -148,6 +148,7 @@ dependencies {
     implementation("io.prometheus:simpleclient:0.15.0")
 
     // Remi
+    implementation("org.noelware.remi:remi-support-minio")
     implementation("org.noelware.remi:remi-support-s3")
     implementation("org.noelware.remi:remi-support-fs")
     api("org.noelware.remi:remi-core")
@@ -156,11 +157,8 @@ dependencies {
     implementation("com.akuleshov7:ktoml-core:0.2.11")
     implementation("com.akuleshov7:ktoml-file:0.2.11")
 
-    // Argon2
-    implementation("de.mkammerer:argon2-jvm:2.11")
-
-    // CLI handler
-    implementation("com.github.ajalt.clikt:clikt:3.4.1")
+    // Apache Commons Codec
+    implementation("commons-codec:commons-codec:1.15")
 
     // Testing utilities
     testImplementation("io.kotest:kotest-runner-junit5")

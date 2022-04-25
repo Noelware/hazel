@@ -28,12 +28,18 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import org.apache.commons.lang3.time.StopWatch
+import org.noelware.remi.core.CHECK_WITH
 import org.noelware.remi.core.StorageTrailer
+import org.noelware.remi.core.figureContentType
 import org.noelware.remi.filesystem.FilesystemStorageTrailer
+import org.noelware.remi.minio.MinIOStorageTrailer
 import org.noelware.remi.s3.S3StorageTrailer
 import java.io.InputStream
+import java.util.concurrent.TimeUnit
 
 /**
  * Wrapper for configuring the storage trailer that **hazel** will use.
@@ -63,6 +69,12 @@ class StorageWrapper(config: StorageConfig) {
 
                 S3StorageTrailer(config.s3!!)
             }
+
+            StorageClass.MINIO -> {
+                assert(config.minio != null) { "Configuration for MinIO is missing." }
+
+                MinIOStorageTrailer(config.minio!!)
+            }
         }
 
         log.info("Using storage trailer ${config.storageClass}!")
@@ -71,9 +83,13 @@ class StorageWrapper(config: StorageConfig) {
         // loaded successfully.
         runBlocking {
             try {
+                log.info("Starting up storage trailer...")
                 trailer.init()
             } catch (e: Exception) {
-                // skip
+                if (e is IllegalStateException && e.message?.contains("doesn't support StorageTrailer#init/0") == true)
+                    return@runBlocking
+
+                throw e
             }
         }
     }
@@ -109,8 +125,13 @@ class StorageWrapper(config: StorageConfig) {
         contentType: String = "application/octet-stream"
     ): Boolean = trailer.upload(path, stream, contentType)
 
+    suspend fun listAll(): List<org.noelware.remi.core.Object> = trailer.listAll()
+
     suspend fun addRoutesBasedOffFiles(routing: Routing) {
+        val stopwatch = StopWatch.createStarted()
         val files = trailer.listAll()
+        log.info("Took ${stopwatch.getTime(TimeUnit.MILLISECONDS)}ms to collect information. :)")
+
         for (file in files) {
             println("file ${file.name}:")
             println("   contentType: ${file.contentType}")
@@ -119,29 +140,53 @@ class StorageWrapper(config: StorageConfig) {
 
             routing.route("/${file.name}", HttpMethod.Get) {
                 handle {
+                    val stream = if (file.inputStream != null) file.inputStream else trailer.open(file.name)
+                    if (stream == null) {
+                        call.respond(
+                            HttpStatusCode.NotFound,
+                            buildJsonObject {
+                                put("success", false)
+                                put(
+                                    "errors",
+                                    buildJsonArray {
+                                        add(
+                                            buildJsonObject {
+                                                put("code", "UNKNOWN_FILE")
+                                                put("message", "Cannot retrieve input stream for ${file.name}.")
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        )
+
+                        return@handle
+                    }
+
+                    val contentType = if (file.contentType == CHECK_WITH) {
+                        trailer.figureContentType(stream)
+                    } else {
+                        file.contentType
+                    }
+
                     val shouldDownload = when {
                         call.request.queryParameters["download"] != null -> {
                             val download = call.request.queryParameters["download"]
                             download != null
                         }
 
-                        file.contentType.startsWith("application/octet-stream") -> true
+                        contentType.startsWith("application/octet-stream") -> true
                         else -> false
                     }
 
-                    val contentType = ContentType.parse(file.contentType)
+                    val ktorContentType = ContentType.parse(file.contentType)
                     if (shouldDownload) {
                         call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"${file.name.split("/").last()}\"")
                     }
 
-                    if (file.original != null) {
-                        call.respondFile(file.original!!)
-                    } else {
-                        call.respondOutputStream(contentType, HttpStatusCode.OK) {
-                            val stream = file.toInputStream()
-                            stream.use { `is` ->
-                                `is`.transferTo(this)
-                            }
+                    call.respondOutputStream(ktorContentType, HttpStatusCode.OK) {
+                        stream.use { `is` ->
+                            `is`.transferTo(this)
                         }
                     }
                 }
@@ -151,7 +196,8 @@ class StorageWrapper(config: StorageConfig) {
                 authenticate("hazel") {
                     handle {
                         val path = call.request.uri
-                        val result = trailer.delete(path.substring(1))
+                        val result = delete(path.substring(1))
+
                         if (result) {
                             call.respond(
                                 HttpStatusCode.OK,

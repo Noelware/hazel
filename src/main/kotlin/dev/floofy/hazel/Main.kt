@@ -17,11 +17,9 @@
 
 package dev.floofy.hazel
 
-import dev.floofy.hazel.cli.HazelCli
-
 object Main {
     @JvmStatic
     fun main(args: Array<String>) {
-        HazelCli.main(args)
+        Bootstrap.bootstrap(null)
     }
 }

@@ -32,6 +32,24 @@ jobs:
         with:
           strip_v: true
 
+      - name: Sets up Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin # Eclipse Temurin is <3
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Validate gradle-wrapper.jar
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Lints the repository for any code errors
+        run: ./gradlew spotlessCheck --no-daemon
+
+      - name: Builds the project for any errors
+        run: ./gradlew compileKotlin --no-daemon
+
   deploy:
     name: Deploy on Kubernetes
     runs-on: ubuntu-latest

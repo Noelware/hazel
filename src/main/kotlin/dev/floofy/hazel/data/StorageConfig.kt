@@ -19,6 +19,7 @@ package dev.floofy.hazel.data
 
 import kotlinx.serialization.SerialName
 import org.noelware.remi.filesystem.FilesystemStorageConfig
+import org.noelware.remi.minio.MinIOStorageConfig
 import org.noelware.remi.s3.S3StorageConfig
 
 /**
@@ -43,7 +44,13 @@ enum class StorageClass {
      * Initializes the S3 storage class.
      */
     @SerialName("s3")
-    S3;
+    S3,
+
+    /**
+     * Initializes the MinIO storage class
+     */
+    @SerialName("minio")
+    MINIO;
 }
 
 /**
@@ -62,6 +69,11 @@ data class StorageConfig(
      * [FS][StorageClass.FS]
      */
     val filesystem: FilesystemStorageConfig? = null,
+
+    /**
+     * Configures a MinIO server as a storage source if [StorageClass] is [MINIO][StorageClass.MINIO].
+     */
+    val minio: MinIOStorageConfig? = null,
 
     /**
      * Alias for [filesystem].

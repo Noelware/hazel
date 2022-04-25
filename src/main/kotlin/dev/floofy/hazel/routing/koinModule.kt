@@ -19,11 +19,13 @@ package dev.floofy.hazel.routing
 
 import dev.floofy.hazel.routing.endpoints.HeartbeatEndpoint
 import dev.floofy.hazel.routing.endpoints.InfoEndpoint
+import dev.floofy.hazel.routing.endpoints.ListFilesEndpoint
 import dev.floofy.hazel.routing.endpoints.MainEndpoint
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val endpointsModule = module {
+    single { ListFilesEndpoint(get(), get()) } bind AbstractEndpoint::class
     single { HeartbeatEndpoint() } bind AbstractEndpoint::class
     single { InfoEndpoint() } bind AbstractEndpoint::class
     single { MainEndpoint() } bind AbstractEndpoint::class

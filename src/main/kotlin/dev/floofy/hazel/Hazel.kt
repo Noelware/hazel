@@ -220,11 +220,22 @@ class Hazel {
                             }
 
                             self.routesRegistered.add(Pair(method, endpoint.path))
+
+//                            if (endpoint.needsAuth) {
+//                                authenticate("hazel") {
+//                                    route(endpoint.path, method) {
+//                                        handle {
+//                                            endpoint.call(call)
+//                                        }
+//                                    }
+//                                }
+//                            } else {
                             route(endpoint.path, method) {
                                 handle {
                                     endpoint.call(call)
                                 }
                             }
+//                            }
                         }
                     }
 

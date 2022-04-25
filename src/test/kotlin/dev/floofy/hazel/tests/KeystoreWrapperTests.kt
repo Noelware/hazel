@@ -19,7 +19,6 @@
 
 package dev.floofy.hazel.tests
 
-import de.mkammerer.argon2.Argon2Factory
 import dev.floofy.hazel.core.KeystoreWrapper
 import dev.floofy.hazel.data.KeystoreConfig
 import io.kotest.assertions.throwables.shouldNotThrow
@@ -34,8 +33,7 @@ class KeystoreWrapperTests: DescribeSpec({
         KeystoreConfig(
             file = "./owo.jks",
             password = "owo da uwu"
-        ),
-        Argon2Factory.create()
+        )
     )
 
     // The test order is so for each test that is executed, it will run
