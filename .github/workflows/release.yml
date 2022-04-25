@@ -17,7 +17,7 @@ name: Release (stable)
 on:
   release:
     types:
-      - published
+      - released
 jobs:
   release:
     name: Release (stable)
