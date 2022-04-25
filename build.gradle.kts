@@ -50,7 +50,7 @@ plugins {
 apply(plugin = "kotlinx-atomicfu")
 
 val JAVA_VERSION = JavaVersion.VERSION_17
-val VERSION = Version(1, 0, 0, 0, ReleaseType.Snapshot)
+val VERSION = Version(1, 0, 0, 0, ReleaseType.Beta)
 val COMMIT_HASH by lazy {
     val cmd = "git rev-parse --short HEAD".split("\\s".toRegex())
     val proc = ProcessBuilder(cmd)
