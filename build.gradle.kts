@@ -160,7 +160,7 @@ dependencies {
     implementation("de.mkammerer:argon2-jvm:2.11")
 
     // CLI handler
-    implementation("com.github.ajalt.clikt:clikt:3.4.1")
+    implementation("com.github.ajalt.clikt:clikt:3.4.2")
 
     // Testing utilities
     testImplementation("io.kotest:kotest-runner-junit5")
