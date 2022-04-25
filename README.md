@@ -1,4 +1,5 @@
-# 🪶 ヘイゼル hazel •
+# 🪶 ヘイゼル hazel • [![ktlint](https://github.com/auguwu/hazel/actions/workflows/lint.yml/badge.svg?branch=master)](https://github.com/auguwu/hazel/actions/workflows/lint.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/auguwu/hazel?label=Docker%3A%20auguwu%2Fhazel&style=flat-square)](https://hub.docker.com/r/auguwu/hazel) [![GitHub Sponsors](https://img.shields.io/github/sponsors/auguwu?style=flat-square)](https://github.com/sponsors/auguwu)
+
 > *Minimal, simple, and open source content delivery network made in Kotlin*
 
 ## Why?
