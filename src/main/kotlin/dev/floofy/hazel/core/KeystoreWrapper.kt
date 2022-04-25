@@ -112,12 +112,12 @@ class KeystoreWrapper(private val config: KeystoreConfig): AutoCloseable {
 
     fun checkIfValid(username: String, password: String): Boolean {
         if (closed) {
-            throw IllegalStateException("Keystore is currently closed, cannot do operation: IS_VALID $username -> ${"*".repeat(password.length)}")
+            throw IllegalStateException("Keystore is currently closed, cannot do operation: IS_VALID $username ${"*".repeat(password.length)}")
         }
 
-        if (!keystore.containsAlias("users:$username")) return false
+        if (!keystore.containsAlias("users.$username")) return false
 
-        val entry = keystore.getEntry("users:$username", PasswordProtection((config.password ?: "").toCharArray())) as KeyStore.SecretKeyEntry
+        val entry = keystore.getEntry("users.$username", PasswordProtection((config.password ?: "").toCharArray())) as KeyStore.SecretKeyEntry
         val value = String(entry.secretKey.encoded)
 
         return value == DigestUtils.sha256Hex(password.toByteArray())
