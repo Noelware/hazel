@@ -37,7 +37,7 @@ FROM eclipse-temurin:18-jdk-alpine
 
 # Install bash, which is required to execute the Docker scripts
 # We will also install `tini`, which is a valid "init" for containers.
-RUN apk update && apk add --no-cache tini bash
+RUN apk update && apk add --no-cache tini bash libc6-compat gcompat
 
 # Set the working directory to /app/noel/hazel
 WORKDIR /app/noel/hazel
