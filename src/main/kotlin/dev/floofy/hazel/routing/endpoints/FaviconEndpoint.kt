@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel.routing
+package dev.floofy.hazel.routing.endpoints
 
-import dev.floofy.hazel.routing.endpoints.HeartbeatEndpoint
-import dev.floofy.hazel.routing.endpoints.InfoEndpoint
-import dev.floofy.hazel.routing.endpoints.ListFilesEndpoint
-import dev.floofy.hazel.routing.endpoints.MainEndpoint
-import org.koin.dsl.bind
-import org.koin.dsl.module
+import dev.floofy.hazel.routing.AbstractEndpoint
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import java.io.File
 
-val endpointsModule = module {
-    single { ListFilesEndpoint(get(), get()) } bind AbstractEndpoint::class
-    single { HeartbeatEndpoint() } bind AbstractEndpoint::class
-    single { InfoEndpoint() } bind AbstractEndpoint::class
-    single { MainEndpoint() } bind AbstractEndpoint::class
+class FaviconEndpoint: AbstractEndpoint("/favicon.ico") {
+    override suspend fun call(call: ApplicationCall) {
+        call.response.status(HttpStatusCode.OK)
+        call.respondFile(File("./assets/feather.png"))
+    }
 }

@@ -90,8 +90,8 @@ dependencies {
     api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.3.2"))
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
     testImplementation(platform("io.kotest:kotest-bom:5.2.3"))
-    api(platform("org.noelware.remi:remi-bom:0.1.2-beta"))
-    api(platform("io.ktor:ktor-bom:2.0.0"))
+    api(platform("org.noelware.remi:remi-bom:0.1.4-beta.1"))
+    api(platform("io.ktor:ktor-bom:2.0.1"))
 
     // kotlinx.coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
@@ -159,6 +159,10 @@ dependencies {
 
     // Apache Commons Codec
     implementation("commons-codec:commons-codec:1.15")
+    implementation("commons-io:commons-io:2.11.0")
+
+    // Clikt (for CLI)
+    implementation("com.github.ajalt.clikt:clikt:3.4.2")
 
     // Testing utilities
     testImplementation("io.kotest:kotest-runner-junit5")

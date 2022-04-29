@@ -38,5 +38,5 @@ object HazelScope: CoroutineScope {
  * @param start The coroutine start option, the default will be [CoroutineStart.DEFAULT].
  * @param block The coroutine core which will be invoked by the context of the provided scope.
  */
-fun HazelScope.launch(start: CoroutineStart = CoroutineStart.DEFAULT, block: CoroutineScope.() -> Unit): Job =
+fun HazelScope.launch(start: CoroutineStart = CoroutineStart.DEFAULT, block: suspend CoroutineScope.() -> Unit): Job =
     if (Sentry.isEnabled()) launch(SentryContext() + coroutineContext, start, block) else launch(coroutineContext, start, block)

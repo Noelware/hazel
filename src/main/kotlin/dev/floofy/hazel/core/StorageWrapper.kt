@@ -19,7 +19,6 @@ package dev.floofy.hazel.core
 
 import dev.floofy.hazel.data.StorageClass
 import dev.floofy.hazel.data.StorageConfig
-import dev.floofy.hazel.extensions.formatSize
 import gay.floof.utils.slf4j.logging
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -28,24 +27,18 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import org.apache.commons.lang3.time.StopWatch
-import org.noelware.remi.core.CHECK_WITH
 import org.noelware.remi.core.StorageTrailer
 import org.noelware.remi.core.figureContentType
 import org.noelware.remi.filesystem.FilesystemStorageTrailer
 import org.noelware.remi.minio.MinIOStorageTrailer
 import org.noelware.remi.s3.S3StorageTrailer
 import java.io.InputStream
-import java.util.concurrent.TimeUnit
 
 /**
  * Wrapper for configuring the storage trailer that **hazel** will use.
  */
 class StorageWrapper(config: StorageConfig) {
-    private val trailer: StorageTrailer<*>
+    val trailer: StorageTrailer<*>
     private val log by logging<StorageWrapper>()
 
     init {
@@ -126,96 +119,5 @@ class StorageWrapper(config: StorageConfig) {
     ): Boolean = trailer.upload(path, stream, contentType)
 
     suspend fun listAll(): List<org.noelware.remi.core.Object> = trailer.listAll()
-
-    suspend fun addRoutesBasedOffFiles(routing: Routing) {
-        val stopwatch = StopWatch.createStarted()
-        val files = trailer.listAll()
-        log.info("Took ${stopwatch.getTime(TimeUnit.MILLISECONDS)}ms to collect information. :)")
-
-        for (file in files) {
-            println("file ${file.name}:")
-            println("   contentType: ${file.contentType}")
-            println("   createdAt:   ${file.createdAt}")
-            println("   size:        ${file.size.formatSize()}")
-
-            routing.route("/${file.name}", HttpMethod.Get) {
-                handle {
-                    val stream = if (file.inputStream != null) file.inputStream else trailer.open(file.name)
-                    if (stream == null) {
-                        call.respond(
-                            HttpStatusCode.NotFound,
-                            buildJsonObject {
-                                put("success", false)
-                                put(
-                                    "errors",
-                                    buildJsonArray {
-                                        add(
-                                            buildJsonObject {
-                                                put("code", "UNKNOWN_FILE")
-                                                put("message", "Cannot retrieve input stream for ${file.name}.")
-                                            }
-                                        )
-                                    }
-                                )
-                            }
-                        )
-
-                        return@handle
-                    }
-
-                    val contentType = if (file.contentType == CHECK_WITH) {
-                        trailer.figureContentType(stream)
-                    } else {
-                        file.contentType
-                    }
-
-                    val shouldDownload = when {
-                        call.request.queryParameters["download"] != null -> {
-                            val download = call.request.queryParameters["download"]
-                            download != null
-                        }
-
-                        contentType.startsWith("application/octet-stream") -> true
-                        else -> false
-                    }
-
-                    val ktorContentType = ContentType.parse(file.contentType)
-                    if (shouldDownload) {
-                        call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"${file.name.split("/").last()}\"")
-                    }
-
-                    call.respondOutputStream(ktorContentType, HttpStatusCode.OK) {
-                        stream.use { `is` ->
-                            `is`.transferTo(this)
-                        }
-                    }
-                }
-            }
-
-            routing.route("/${file.name}", HttpMethod.Delete) {
-                authenticate("hazel") {
-                    handle {
-                        val path = call.request.uri
-                        val result = delete(path.substring(1))
-
-                        if (result) {
-                            call.respond(
-                                HttpStatusCode.OK,
-                                buildJsonObject {
-                                    put("success", true)
-                                }
-                            )
-                        } else {
-                            call.respond(
-                                HttpStatusCode.BadRequest,
-                                buildJsonObject {
-                                    put("success", false)
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+    fun <I: InputStream> findContentType(stream: I): String = trailer.figureContentType(stream)
 }

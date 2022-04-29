@@ -45,6 +45,9 @@ WORKDIR /app/noel/hazel
 # Copy the Docker scripts in the `scripts/` directory
 COPY docker /app/noel/hazel/scripts
 
+# Copy all the assets here
+COPY assets /app/noel/hazel/assets
+
 # Copy the built distribution from the `builder` stage.
 COPY --from=builder /build/hazel/build/install/hazel .
 

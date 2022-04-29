@@ -23,7 +23,7 @@ import dev.floofy.hazel.core.KeystoreWrapper
 import dev.floofy.hazel.core.StorageWrapper
 import dev.floofy.hazel.data.Config
 import dev.floofy.hazel.extensions.inject
-import dev.floofy.hazel.routing.endpointsModule
+import dev.floofy.hazel.routing.endpoints.endpointsModule
 import gay.floof.utils.slf4j.logging
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
