@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel
+package dev.floofy.hazel.cli.commands.keystore
 
-import dev.floofy.hazel.cli.HazelCli
+import com.github.ajalt.clikt.core.CliktCommand
 
-object Main {
-    @JvmStatic
-    fun main(args: Array<String>) {
-        HazelCli.main(args)
+object AddUserCommand: CliktCommand(
+    name = "add-user",
+    help = "Adds a user to the keystore."
+) {
+    override fun run() {
+        println("soon:tm:")
     }
 }

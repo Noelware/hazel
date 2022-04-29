@@ -17,6 +17,8 @@
 
 package dev.floofy.hazel.core
 
+import de.mkammerer.argon2.Argon2
+import de.mkammerer.argon2.Argon2Factory
 import dev.floofy.hazel.data.KeystoreConfig
 import gay.floof.utils.slf4j.logging
 import org.apache.commons.codec.digest.DigestUtils
@@ -33,7 +35,7 @@ import javax.crypto.spec.SecretKeySpec
  * Represents the wrapper for Java's Keystore functionality. hazel uses a keystore
  * for user authentication for sensitive endpoints (i.e, `POST`/`PUT`/`DELETE`)
  */
-class KeystoreWrapper(private val config: KeystoreConfig): AutoCloseable {
+class KeystoreWrapper(private val config: KeystoreConfig, private val argon2: Argon2 = Argon2Factory.create()): AutoCloseable {
     private val keystore = KeyStore.getInstance(KeyStore.getDefaultType())
     private val log by logging<KeystoreWrapper>()
 
@@ -52,12 +54,32 @@ class KeystoreWrapper(private val config: KeystoreConfig): AutoCloseable {
         val file = File(config.file)
 
         if (!file.exists()) {
+            log.warn("Keystore at path ${config.file} didn't exist! It will not be saved unless the keystore is closed or `save()` was called.")
             keystore.load(null, passwordArray)
         } else {
             keystore.load(FileInputStream(file), passwordArray)
         }
 
         log.debug("Done!")
+    }
+
+    fun initUnsafe() {
+        // nop this if it's already closed; we do not re-create this instance
+        if (closed) return
+        if (config.password == null) {
+            log.warn("It is recommended to set a password for your keystore!")
+        }
+
+        log.debug("Loading keystore in path ${config.file}...")
+        val passwordArray = (config.password ?: "").toCharArray()
+        val file = File(config.file)
+
+        if (!file.exists()) {
+            throw IllegalStateException("Keystore was not created, please run `hazel keystore create` to generate one!")
+        }
+
+        keystore.load(FileInputStream(file), passwordArray)
+        log.debug("Keystore was created successfully.")
     }
 
     operator fun get(key: String): String {
@@ -96,8 +118,12 @@ class KeystoreWrapper(private val config: KeystoreConfig): AutoCloseable {
         if (keystore.containsAlias("users.$username"))
             throw IllegalStateException("User with username $username already exists.")
 
-        val hexPassword = DigestUtils.sha256Hex(password.toByteArray())
-        addValue("users.$username", hexPassword)
+        try {
+            val hash = argon2.hash(10, 65536, 1, password.toByteArray())
+            addValue("users.$username", hash)
+        } finally {
+            argon2.wipeArray(password.toByteArray())
+        }
     }
 
     fun deleteUser(username: String) {
@@ -149,6 +175,8 @@ class KeystoreWrapper(private val config: KeystoreConfig): AutoCloseable {
         closed = true
         log.info("Successfully closed keystore! We will no longer be able to execute operations. :<")
     }
+
+    fun keys(): List<String> = keystore.aliases().toList()
 
     private fun save() {
         if (closed) {

@@ -16,3 +16,45 @@
  */
 
 package dev.floofy.hazel.cli.abstractions
+
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
+import dev.floofy.hazel.core.KeystoreWrapper
+import dev.floofy.hazel.data.KeystoreConfig
+
+abstract class BaseKeystoreCommand(
+    name: String? = null,
+    help: String = ""
+): CliktCommand(name = name, help = help) {
+    private val keystorePath: String by option(
+        "--path", "--ks-path", "--keystore-path", "-p",
+        help = "The keystore path to consume."
+    ).required()
+
+    private val password: String? by option(
+        "--password", "--ks-pwd", "--pwd",
+        help = "The keystore password to use to unlock it."
+    )
+
+    fun wrapper(): KeystoreWrapper {
+        val cwd = System.getProperty("user.dir", "")
+        val home = System.getProperty("user.home", "/")
+
+        val path = when {
+            keystorePath.startsWith("~/") -> home + keystorePath.substring(1)
+            keystorePath.startsWith("./") -> cwd + keystorePath.substring(1)
+            else -> keystorePath
+        }
+
+        val wrapper = KeystoreWrapper(
+            KeystoreConfig(
+                path,
+                password
+            )
+        )
+
+        wrapper.initUnsafe()
+        return wrapper
+    }
+}

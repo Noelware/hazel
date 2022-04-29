@@ -50,7 +50,7 @@ plugins {
 apply(plugin = "kotlinx-atomicfu")
 
 val JAVA_VERSION = JavaVersion.VERSION_17
-val VERSION = Version(1, 0, 0, 0, ReleaseType.Beta)
+val VERSION = Version(1, 0, 0, 0, ReleaseType.None)
 val COMMIT_HASH by lazy {
     val cmd = "git rev-parse --short HEAD".split("\\s".toRegex())
     val proc = ProcessBuilder(cmd)
@@ -163,6 +163,9 @@ dependencies {
 
     // Clikt (for CLI)
     implementation("com.github.ajalt.clikt:clikt:3.4.2")
+
+    // Argon2
+    implementation("de.mkammerer:argon2-jvm:2.11")
 
     // Testing utilities
     testImplementation("io.kotest:kotest-runner-junit5")

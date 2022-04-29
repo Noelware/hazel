@@ -16,3 +16,46 @@
  */
 
 package dev.floofy.hazel.cli.commands
+
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.types.file
+import java.nio.file.Files
+import java.nio.file.Paths
+
+object GenerateCommand: CliktCommand(
+    name = "generate",
+    help = """
+    |The "generate" subcommand generates a configuration file that can be executed to run the server.
+    |
+    |The `dest` argument is the source to put the file in. The file cannot be a directory since Hazel
+    |loads it and runs it.
+    """.trimMargin()
+) {
+    private val dest by argument(
+        "dest",
+        help = "The destination of the file to output in"
+    ).file(mustExist = false, canBeFile = true, canBeDir = false)
+
+    override fun run() {
+        if (dest.exists()) {
+            println("[hazel:generate] File ${dest.path} already exists.")
+            return
+        }
+
+        println("[hazel:generate] Writing output to ${dest.path}...")
+        val contents = """
+        |[keystore]
+        |file = "./data/keystore.jks"
+        |
+        |[storage]
+        |class = "fs"
+        |
+        |[storage.fs]
+        |directory = "./data/hazel"
+        """.trimMargin()
+
+        Files.write(Paths.get(dest.toURI()), contents.toByteArray())
+        println("[hazel:generate] Generated a default configuration file in ${dest.path}!")
+    }
+}
