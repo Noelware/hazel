@@ -29,7 +29,7 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.17.2")
-        classpath("com.diffplug.spotless:spotless-plugin-gradle:6.5.0")
+        classpath("com.diffplug.spotless:spotless-plugin-gradle:6.5.1")
         classpath(kotlin("gradle-plugin", version = "1.6.20"))
         classpath(kotlin("serialization", version = "1.6.20"))
         classpath("gay.floof.utils:gradle-utils:1.3.0")
@@ -39,7 +39,7 @@ buildscript {
 
 plugins {
     kotlin("plugin.serialization") version "1.6.21"
-    id("com.diffplug.spotless") version "6.5.0"
+    id("com.diffplug.spotless") version "6.5.1"
     kotlin("jvm") version "1.6.21"
     id("io.kotest") version "0.3.9"
     application
@@ -90,7 +90,7 @@ dependencies {
     api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.3.2"))
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
     testImplementation(platform("io.kotest:kotest-bom:5.2.3"))
-    api(platform("org.noelware.remi:remi-bom:0.1.4-beta.1"))
+    api(platform("org.noelware.remi:remi-bom:0.1.4-beta.2"))
     api(platform("io.ktor:ktor-bom:2.0.1"))
 
     // kotlinx.coroutines
