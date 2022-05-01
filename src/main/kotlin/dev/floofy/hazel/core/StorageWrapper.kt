@@ -19,13 +19,7 @@ package dev.floofy.hazel.core
 
 import dev.floofy.hazel.data.StorageClass
 import dev.floofy.hazel.data.StorageConfig
-import gay.floof.utils.slf4j.logging
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import dev.floofy.utils.slf4j.*
 import kotlinx.coroutines.runBlocking
 import org.noelware.remi.core.StorageTrailer
 import org.noelware.remi.core.figureContentType

@@ -28,7 +28,7 @@ import kotlinx.serialization.json.put
 import org.apache.commons.lang3.time.StopWatch
 import java.util.concurrent.TimeUnit
 
-class ListFilesEndpoint(private val trailer: StorageWrapper, private val config: Config): AbstractEndpoint("/list", needsAuth = true) {
+class ListFilesEndpoint(private val trailer: StorageWrapper, private val config: Config): AbstractEndpoint("/list") {
     override suspend fun call(call: ApplicationCall) {
         val stopwatch = StopWatch.createStarted()
         val files = trailer.listAll()

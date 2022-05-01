@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import gay.floof.gradle.utils.*
+import dev.floofy.utils.gradle.*
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -30,9 +30,9 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.17.2")
         classpath("com.diffplug.spotless:spotless-plugin-gradle:6.5.1")
-        classpath(kotlin("gradle-plugin", version = "1.6.20"))
-        classpath(kotlin("serialization", version = "1.6.20"))
-        classpath("gay.floof.utils:gradle-utils:1.3.0")
+        classpath(kotlin("gradle-plugin", version = "1.6.21"))
+        classpath(kotlin("serialization", version = "1.6.21"))
+        classpath("dev.floofy.commons:commons-gradle:2.0.0")
         classpath("io.kotest:kotest-gradle-plugin:0.3.9")
     }
 }
@@ -50,7 +50,7 @@ plugins {
 apply(plugin = "kotlinx-atomicfu")
 
 val JAVA_VERSION = JavaVersion.VERSION_17
-val VERSION = Version(1, 0, 0, 0, ReleaseType.None)
+val VERSION = Version(1, 1, 0, 0, ReleaseType.None)
 val COMMIT_HASH by lazy {
     val cmd = "git rev-parse --short HEAD".split("\\s".toRegex())
     val proc = ProcessBuilder(cmd)
@@ -91,6 +91,7 @@ dependencies {
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
     testImplementation(platform("io.kotest:kotest-bom:5.2.3"))
     api(platform("org.noelware.remi:remi-bom:0.1.4-beta.2"))
+    api(platform("dev.floofy.commons:commons-bom:2.0.1"))
     api(platform("io.ktor:ktor-bom:2.0.1"))
 
     // kotlinx.coroutines
@@ -105,8 +106,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
 
     // Noel Utilities
-    floof("commons", "commons-slf4j", "1.3.0")
-    floofy("ktor", "ktor-sentry", "0.0.1")
+    implementation("dev.floofy.commons:slf4j")
 
     // Apache Utilities
     implementation("org.apache.commons:commons-lang3:3.12.0")
@@ -119,11 +119,7 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-serialization")
     implementation("io.ktor:ktor-server-netty")
-    implementation("io.ktor:ktor-server-auth")
     implementation("io.ktor:ktor-server-cors")
-
-    // Ktor Client (for `hazel ping`)
-    implementation("io.ktor:ktor-client-okhttp")
 
     // Koin
     implementation("io.insert-koin:koin-core:3.1.6")
@@ -156,21 +152,6 @@ dependencies {
     // TOML
     implementation("com.akuleshov7:ktoml-core:0.2.11")
     implementation("com.akuleshov7:ktoml-file:0.2.11")
-
-    // Apache Commons Codec
-    implementation("commons-codec:commons-codec:1.15")
-    implementation("commons-io:commons-io:2.11.0")
-
-    // Clikt (for CLI)
-    implementation("com.github.ajalt.clikt:clikt:3.4.2")
-
-    // Argon2
-    implementation("de.mkammerer:argon2-jvm:2.11")
-
-    // Testing utilities
-    testImplementation("io.kotest:kotest-runner-junit5")
-    testImplementation("io.kotest:kotest-assertions-core")
-    testImplementation("io.kotest:kotest-property")
 }
 
 spotless {
@@ -217,7 +198,7 @@ tasks {
 
             expand(
                 mapOf(
-                    "version" to "$VERSION",
+                    //"version" to "$VERSION",
                     "commit_sha" to COMMIT_HASH,
                     "build_date" to formatter.format(date)
                 )

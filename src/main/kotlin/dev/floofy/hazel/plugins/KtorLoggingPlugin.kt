@@ -17,18 +17,18 @@
 
 package dev.floofy.hazel.plugins
 
+import dev.floofy.utils.slf4j.logging
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.util.*
 import org.apache.commons.lang3.time.StopWatch
-import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 val KtorLoggingPlugin = createApplicationPlugin("KtorLoggingPlugin") {
     val stopwatchKey = AttributeKey<StopWatch>("stopwatchKey")
-    val log = LoggerFactory.getLogger("dev.floofy.hazel.plugins.KtorLoggingPluginKt")
+    val log by logging("dev.floofy.hazel.plugins.KtorLoggingPluginKt")
 
     environment?.monitor?.subscribe(ApplicationStarted) {
         log.info("HTTP service has started successfully! :3")

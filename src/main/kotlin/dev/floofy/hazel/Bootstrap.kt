@@ -19,12 +19,11 @@ package dev.floofy.hazel
 
 import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlConfig
-import dev.floofy.hazel.core.KeystoreWrapper
 import dev.floofy.hazel.core.StorageWrapper
 import dev.floofy.hazel.data.Config
 import dev.floofy.hazel.extensions.inject
 import dev.floofy.hazel.routing.endpoints.endpointsModule
-import gay.floof.utils.slf4j.logging
+import dev.floofy.utils.slf4j.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.koin.core.context.GlobalContext
@@ -38,7 +37,8 @@ import kotlin.system.exitProcess
 object Bootstrap {
     private val log by logging<Bootstrap>()
 
-    fun bootstrap(configPath: String?) {
+    @JvmStatic
+    fun main(args: Array<String>) {
         Thread.currentThread().name = "Hazel-BootstrapThread"
         log.info("Starting up hazel...")
 
@@ -47,7 +47,7 @@ object Bootstrap {
         installDefaultThreadExceptionHandler()
 
         // Configure the Hazel config
-        val fullConfigPath = configPath ?: "./config.toml"
+        val fullConfigPath = System.getenv("HAZEL_CONFIG_PATH") ?: "./config.toml"
         val configFile = File(fullConfigPath)
 
         if (!configFile.exists())
@@ -72,10 +72,7 @@ object Bootstrap {
         }
 
         val config = toml.decodeFromString(Config.serializer(), configFile.readText())
-        val keystore = KeystoreWrapper(config.keystore)
         val storage = StorageWrapper(config.storage)
-
-        keystore.init()
 
         // Register Koin here
         val koin = startKoin {
@@ -86,7 +83,6 @@ object Bootstrap {
                     single { toml }
                     single { json }
                     single { config }
-                    single { keystore }
                     single { storage }
                 }
             )
@@ -117,10 +113,8 @@ object Bootstrap {
                 val koinStarted = GlobalContext.getKoinApplicationOrNull() != null
                 if (koinStarted) {
                     val hazel: Hazel by inject()
-                    val keystore: KeystoreWrapper by inject()
 
                     hazel.destroy()
-                    keystore.close()
                 } else {
                     log.warn("Koin was not started, not destroying server (just yet!)")
                 }

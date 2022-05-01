@@ -17,7 +17,7 @@
 
 package dev.floofy.hazel
 
-import dev.floofy.hazel.core.KeystoreWrapper
+import dev.floofy.hazel.core.Ticker
 import dev.floofy.hazel.core.createThreadFactory
 import dev.floofy.hazel.data.Config
 import dev.floofy.hazel.extensions.formatSize
@@ -27,11 +27,10 @@ import dev.floofy.hazel.plugins.KtorLoggingPlugin
 import dev.floofy.hazel.plugins.UserAgentPlugin
 import dev.floofy.hazel.routing.AbstractEndpoint
 import dev.floofy.hazel.routing.createCdnEndpoints
-import gay.floof.utils.slf4j.logging
+import dev.floofy.utils.slf4j.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.autohead.*
@@ -53,6 +52,7 @@ import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.time.Duration.Companion.minutes
 
 class Hazel {
     companion object {
@@ -60,7 +60,7 @@ class Hazel {
     }
 
     private val routesRegistered = mutableListOf<Pair<HttpMethod, String>>()
-    private lateinit var server: NettyApplicationEngine
+    lateinit var server: NettyApplicationEngine
     private val log by logging<Hazel>()
 
     suspend fun start() {
@@ -85,6 +85,14 @@ class Hazel {
 
         val config: Config by inject()
         val self = this
+        val ticker = Ticker("update image routing", 1.minutes.inWholeMilliseconds)
+
+        ticker.launch {
+            log.info("Updating routes...")
+
+            val routing = server.application.plugin(Routing)
+            routing.createCdnEndpoints()
+        }
 
         val environment = applicationEngineEnvironment {
             developmentMode = false
@@ -97,23 +105,12 @@ class Hazel {
 
             module {
                 val json: Json by inject()
-                val keystore: KeystoreWrapper by inject()
 
                 install(AutoHeadResponse)
                 install(KtorLoggingPlugin)
                 install(UserAgentPlugin)
                 install(ContentNegotiation) {
                     this.json(json)
-                }
-
-                install(Authentication) {
-                    basic("hazel") {
-                        realm = "Noel/Hazel"
-                        validate { creds ->
-                            val user = keystore.checkIfValid(creds.name, creds.password)
-                            if (user) UserIdPrincipal(creds.name) else null
-                        }
-                    }
                 }
 
                 install(CORS) {
@@ -225,21 +222,11 @@ class Hazel {
                             }
 
                             self.routesRegistered.add(Pair(method, endpoint.path))
-//                            if (endpoint.needsAuth) {
-//                                authenticate("hazel") {
-//                                    route(endpoint.path, method) {
-//                                        handle {
-//                                            endpoint.call(call)
-//                                        }
-//                                    }
-//                                }
-//                            } else {
                             route(endpoint.path, method) {
                                 handle {
                                     endpoint.call(call)
                                 }
                             }
-//                            }
                         }
                     }
                 }

@@ -37,6 +37,9 @@ class InfoEndpoint: AbstractEndpoint("/info") {
                         put("version", HazelInfo.version)
                         put("commit_sha", HazelInfo.commitHash)
                         put("build_date", HazelInfo.buildDate)
+
+                        if (HazelInfo.dediNode != null)
+                            put("dedi_node", HazelInfo.dediNode)
                     }
                 )
             }

@@ -26,7 +26,6 @@ data class Config(
 
     @SerialName("sentry_dsn")
     val sentryDsn: String? = null,
-    val keystore: KeystoreConfig = KeystoreConfig(),
     val storage: StorageConfig,
     val server: KtorServerConfig = KtorServerConfig(),
 )
