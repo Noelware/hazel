@@ -198,7 +198,7 @@ tasks {
 
             expand(
                 mapOf(
-                    //"version" to "$VERSION",
+                    "version" to "$VERSION",
                     "commit_sha" to COMMIT_HASH,
                     "build_date" to formatter.format(date)
                 )
