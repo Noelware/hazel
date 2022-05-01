@@ -50,7 +50,7 @@ plugins {
 apply(plugin = "kotlinx-atomicfu")
 
 val JAVA_VERSION = JavaVersion.VERSION_17
-val VERSION = Version(1, 1, 0, 0, ReleaseType.None)
+val VERSION = Version(1, 1, 1, 0, ReleaseType.None)
 val COMMIT_HASH by lazy {
     val cmd = "git rev-parse --short HEAD".split("\\s".toRegex())
     val proc = ProcessBuilder(cmd)
@@ -176,7 +176,7 @@ spotless {
 }
 
 application {
-    mainClass.set("dev.floofy.hazel.Main")
+    mainClass.set("dev.floofy.hazel.Bootstrap")
 }
 
 java {

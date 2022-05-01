@@ -113,7 +113,7 @@ jobs:
       - name: Set tag
         run: |
           kubectl set image deployment/hazel hazel=auguwu/hazel:${{ steps.tag.outputs.tag }}
-          kubectl set image deployment/maven maven=auguwu/hazel:${{ steps.tag.outputs.tag }}
+          kubectl set image deployment/maven hazel=auguwu/hazel:${{ steps.tag.outputs.tag }}
 
       - name: Deploy to the bot
         run: |
