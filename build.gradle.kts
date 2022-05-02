@@ -32,7 +32,7 @@ buildscript {
         classpath("com.diffplug.spotless:spotless-plugin-gradle:6.5.1")
         classpath(kotlin("gradle-plugin", version = "1.6.21"))
         classpath(kotlin("serialization", version = "1.6.21"))
-        classpath("dev.floofy.commons:commons-gradle:2.0.0")
+        classpath("dev.floofy.commons:commons-gradle:2.0.1")
         classpath("io.kotest:kotest-gradle-plugin:0.3.9")
     }
 }
