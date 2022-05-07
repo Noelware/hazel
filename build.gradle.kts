@@ -91,7 +91,7 @@ dependencies {
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
     testImplementation(platform("io.kotest:kotest-bom:5.3.0"))
     api(platform("org.noelware.remi:remi-bom:0.1.4-beta.3"))
-    api(platform("dev.floofy.commons:commons-bom:2.1.0"))
+    api(platform("dev.floofy.commons:commons-bom:2.1.0.1"))
     api(platform("io.ktor:ktor-bom:2.0.1"))
 
     // kotlinx.coroutines
