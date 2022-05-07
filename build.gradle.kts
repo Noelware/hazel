@@ -50,7 +50,7 @@ plugins {
 apply(plugin = "kotlinx-atomicfu")
 
 val JAVA_VERSION = JavaVersion.VERSION_17
-val VERSION = Version(1, 1, 1, 0, ReleaseType.None)
+val VERSION = Version(1, 2, 0, 0, ReleaseType.None)
 val COMMIT_HASH by lazy {
     val cmd = "git rev-parse --short HEAD".split("\\s".toRegex())
     val proc = ProcessBuilder(cmd)
@@ -70,7 +70,7 @@ println("|> hazel: $VERSION ($COMMIT_HASH)")
 println("|> Java: $JAVA_VERSION (JVM: ${System.getProperty("java.version", "Unknown")} [${System.getProperty("java.vendor", "Unknown")}] | JRE: ${Runtime.version()})")
 println("+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+")
 
-group = "dev.floofy"
+group = "dev.floofy.hazel"
 version = "$VERSION"
 
 repositories {
@@ -89,6 +89,7 @@ dependencies {
     // BOMs
     api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.3.2"))
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
+    api(platform("org.noelware.ktor:ktor-routing-bom:0.1-beta"))
     testImplementation(platform("io.kotest:kotest-bom:5.3.0"))
     api(platform("org.noelware.remi:remi-bom:0.1.4-beta.3"))
     api(platform("dev.floofy.commons:commons-bom:2.1.0.1"))
@@ -106,6 +107,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.3")
 
     // Noel Utilities
+    implementation("dev.floofy.commons:extensions-kotlin")
+    implementation("dev.floofy.commons:extensions-koin")
     implementation("dev.floofy.commons:slf4j")
 
     // Apache Utilities
@@ -148,6 +151,10 @@ dependencies {
     implementation("org.noelware.remi:remi-support-s3")
     implementation("org.noelware.remi:remi-support-fs")
     api("org.noelware.remi:remi-core")
+
+    // Ktor Routing
+    implementation("org.noelware.ktor:core")
+    implementation("org.noelware.ktor:loader-koin")
 
     // TOML
     implementation("com.akuleshov7:ktoml-core:0.2.11")

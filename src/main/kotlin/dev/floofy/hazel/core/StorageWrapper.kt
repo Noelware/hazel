@@ -34,6 +34,7 @@ import java.io.InputStream
 class StorageWrapper(config: StorageConfig) {
     val trailer: StorageTrailer<*>
     private val log by logging<StorageWrapper>()
+    val listCache = mutableListOf<org.noelware.remi.core.Object>()
 
     init {
         log.info("Figuring out what storage trailer to use...")
@@ -112,6 +113,16 @@ class StorageWrapper(config: StorageConfig) {
         contentType: String = "application/octet-stream"
     ): Boolean = trailer.upload(path, stream, contentType)
 
-    suspend fun listAll(): List<org.noelware.remi.core.Object> = trailer.listAll()
+    suspend fun listAll(force: Boolean = true): List<org.noelware.remi.core.Object> =
+        if (force || listCache.isEmpty()) {
+            val c = trailer.listAll()
+            listCache.clear()
+            listCache += c
+
+            listCache
+        } else {
+            listCache
+        }
+
     fun <I: InputStream> findContentType(stream: I): String = trailer.figureContentType(stream)
 }

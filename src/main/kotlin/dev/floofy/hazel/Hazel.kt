@@ -27,6 +27,7 @@ import dev.floofy.hazel.plugins.KtorLoggingPlugin
 import dev.floofy.hazel.plugins.UserAgentPlugin
 import dev.floofy.hazel.routing.AbstractEndpoint
 import dev.floofy.hazel.routing.createCdnEndpoints
+import dev.floofy.utils.koin.retrieve
 import dev.floofy.utils.slf4j.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -35,7 +36,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
@@ -43,7 +44,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.sentry.Sentry
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -88,14 +88,14 @@ class Hazel {
         val ticker = Ticker("update image routing", 1.minutes.inWholeMilliseconds)
 
         ticker.launch {
-            log.info("Updating routes...")
+            log.debug("Updating routes...")
 
             val routing = server.application.plugin(Routing)
             routing.createCdnEndpoints()
         }
 
         val environment = applicationEngineEnvironment {
-            developmentMode = false
+            developmentMode = System.getProperty("dev.floofy.hazel.debug", "false") == "true"
             log = LoggerFactory.getLogger("dev.floofy.hazel.ktor.KtorApplicationEnvironment")
 
             connector {
@@ -104,13 +104,11 @@ class Hazel {
             }
 
             module {
-                val json: Json by inject()
-
                 install(AutoHeadResponse)
                 install(KtorLoggingPlugin)
                 install(UserAgentPlugin)
                 install(ContentNegotiation) {
-                    this.json(json)
+                    json(GlobalContext.retrieve())
                 }
 
                 install(CORS) {
