@@ -80,7 +80,7 @@ jobs:
 
       # TODO: support ARM64
       - name: Build x86_64 image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           file: ./Dockerfile
