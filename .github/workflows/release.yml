@@ -51,7 +51,7 @@ jobs:
         run: ./gradlew compileKotlin --no-daemon
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
 
       - name: Cache Docker layers
         uses: actions/cache@v3
