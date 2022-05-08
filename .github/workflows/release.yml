@@ -115,7 +115,7 @@ jobs:
           kubectl set image deployment/hazel hazel=auguwu/hazel:${{ steps.tag.outputs.tag }}
           kubectl set image deployment/maven hazel=auguwu/hazel:${{ steps.tag.outputs.tag }}
           kubectl set image deployment/maven --namespace noelware hazel=auguwu/hazel:${{ steps.tag.outputs.tag }}
-          kubectl set image statefulset/cdn --namespace noelware auguwu/hazel:${{ steps.tag.outputs.tag }}
+          kubectl set image statefulset/cdn --namespace noelware hazel=auguwu/hazel:${{ steps.tag.outputs.tag }}
 
       - name: Deploy to Kubernetes!
         run: |
