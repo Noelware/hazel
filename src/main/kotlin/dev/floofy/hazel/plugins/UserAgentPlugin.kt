@@ -17,7 +17,7 @@
 
 package dev.floofy.hazel.plugins
 
-import dev.floofy.hazel.extensions.ifNotNull
+import dev.floofy.utils.kotlin.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import org.slf4j.MDC

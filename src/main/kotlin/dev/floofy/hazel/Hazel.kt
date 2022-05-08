@@ -20,14 +20,11 @@ package dev.floofy.hazel
 import dev.floofy.hazel.core.Ticker
 import dev.floofy.hazel.core.createThreadFactory
 import dev.floofy.hazel.data.Config
-import dev.floofy.hazel.extensions.formatSize
-import dev.floofy.hazel.extensions.inject
-import dev.floofy.hazel.extensions.retrieveAll
 import dev.floofy.hazel.plugins.KtorLoggingPlugin
 import dev.floofy.hazel.plugins.UserAgentPlugin
-import dev.floofy.hazel.routing.AbstractEndpoint
 import dev.floofy.hazel.routing.createCdnEndpoints
-import dev.floofy.utils.koin.retrieve
+import dev.floofy.utils.koin.*
+import dev.floofy.utils.kotlin.*
 import dev.floofy.utils.slf4j.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -43,11 +40,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.sentry.Sentry
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.koin.core.context.GlobalContext
+import org.noelware.ktor.NoelKtorRoutingPlugin
+import org.noelware.ktor.loader.koin.KoinEndpointLoader
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 import java.util.concurrent.ExecutorService
@@ -70,7 +68,7 @@ class Hazel {
 
         log.info("+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+")
         log.info("Runtime Information:")
-        log.info("  * Free / Total Memory [Max]: ${runtime.freeMemory().formatSize()}/${runtime.totalMemory().formatSize()} [${runtime.maxMemory().formatSize()}]")
+        log.info("  * Free / Total Memory [Max]: ${runtime.freeMemory().sizeToStr()}/${runtime.totalMemory().sizeToStr()} [${runtime.maxMemory().sizeToStr()}]")
         log.info("  * Threads: ${threads.threadCount} (${threads.daemonThreadCount} background threads)")
         log.info("  * Operating System: ${os.name} with ${os.availableProcessors} processors (${os.arch}; ${os.version})")
         log.info("  * Versions:")
@@ -201,32 +199,9 @@ class Hazel {
                     }
                 }
 
-                routing {
-                    self.log.debug("Registering file routes...")
-                    val s = this
-                    runBlocking {
-                        s.createCdnEndpoints()
-                    }
-
-                    val endpoints = GlobalContext.retrieveAll<AbstractEndpoint>()
-                    self.log.info("Found ${endpoints.size} to register!")
-
-                    for (endpoint in endpoints) {
-                        self.log.debug("${endpoint.path} [${endpoint.methods.joinToString(", ") { it.value }}]")
-                        for (method in endpoint.methods) {
-                            if (self.routesRegistered.contains(Pair(method, endpoint.path))) {
-                                self.log.debug("Endpoint ${method.value} ${endpoint.path} is already registered.")
-                                continue
-                            }
-
-                            self.routesRegistered.add(Pair(method, endpoint.path))
-                            route(endpoint.path, method) {
-                                handle {
-                                    endpoint.call(call)
-                                }
-                            }
-                        }
-                    }
+                install(Routing)
+                install(NoelKtorRoutingPlugin) {
+                    endpointLoader = KoinEndpointLoader
                 }
             }
         }

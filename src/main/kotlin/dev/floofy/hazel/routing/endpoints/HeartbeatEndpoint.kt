@@ -15,15 +15,18 @@
  * limitations under the License.
  */
 
+@file:Suppress("UNUSED")
 package dev.floofy.hazel.routing.endpoints
 
-import dev.floofy.hazel.routing.AbstractEndpoint
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
+import org.noelware.ktor.endpoints.AbstractEndpoint
+import org.noelware.ktor.endpoints.Get
 
 class HeartbeatEndpoint: AbstractEndpoint("/heartbeat") {
-    override suspend fun call(call: ApplicationCall) {
+    @Get
+    suspend fun call(call: ApplicationCall) {
         call.respond(HttpStatusCode.OK, "OK")
     }
 }

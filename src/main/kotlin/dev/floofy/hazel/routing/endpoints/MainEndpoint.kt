@@ -17,15 +17,17 @@
 
 package dev.floofy.hazel.routing.endpoints
 
-import dev.floofy.hazel.routing.AbstractEndpoint
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import org.noelware.ktor.endpoints.AbstractEndpoint
+import org.noelware.ktor.endpoints.Get
 
 class MainEndpoint: AbstractEndpoint("/") {
-    override suspend fun call(call: ApplicationCall) {
+    @Get
+    suspend fun call(call: ApplicationCall) {
         call.respond(
             HttpStatusCode.OK,
             buildJsonObject {

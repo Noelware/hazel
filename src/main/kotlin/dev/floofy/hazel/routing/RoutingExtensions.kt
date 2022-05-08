@@ -20,7 +20,7 @@ package dev.floofy.hazel.routing
 import dev.floofy.hazel.HazelScope
 import dev.floofy.hazel.core.ImageManipulator
 import dev.floofy.hazel.core.StorageWrapper
-import dev.floofy.hazel.extensions.inject
+import dev.floofy.utils.koin.*
 import dev.floofy.utils.slf4j.logging
 import io.ktor.http.*
 import io.ktor.http.content.*

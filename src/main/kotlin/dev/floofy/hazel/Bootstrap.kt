@@ -21,8 +21,9 @@ import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlConfig
 import dev.floofy.hazel.core.StorageWrapper
 import dev.floofy.hazel.data.Config
-import dev.floofy.hazel.extensions.inject
 import dev.floofy.hazel.routing.endpoints.endpointsModule
+import dev.floofy.utils.koin.inject
+import dev.floofy.utils.kotlin.*
 import dev.floofy.utils.slf4j.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json

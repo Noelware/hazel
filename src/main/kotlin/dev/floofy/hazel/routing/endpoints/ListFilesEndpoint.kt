@@ -19,18 +19,20 @@ package dev.floofy.hazel.routing.endpoints
 
 import dev.floofy.hazel.core.StorageWrapper
 import dev.floofy.hazel.data.Config
-import dev.floofy.hazel.routing.AbstractEndpoint
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.apache.commons.lang3.time.StopWatch
+import org.noelware.ktor.endpoints.AbstractEndpoint
+import org.noelware.ktor.endpoints.Get
 import org.noelware.remi.filesystem.FilesystemStorageTrailer
 import java.util.concurrent.TimeUnit
 
 class ListFilesEndpoint(private val trailer: StorageWrapper, private val config: Config): AbstractEndpoint("/list") {
-    override suspend fun call(call: ApplicationCall) {
+    @Get
+    suspend fun call(call: ApplicationCall) {
         val stopwatch = StopWatch.createStarted()
         val files = trailer.listAll()
         stopwatch.stop()

@@ -17,9 +17,9 @@
 
 package dev.floofy.hazel.routing.endpoints
 
-import dev.floofy.hazel.routing.AbstractEndpoint
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.noelware.ktor.endpoints.AbstractEndpoint
 
 val endpointsModule = module {
     single { ListFilesEndpoint(get(), get()) } bind AbstractEndpoint::class
