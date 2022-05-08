@@ -40,6 +40,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.sentry.Sentry
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -199,7 +200,12 @@ class Hazel {
                     }
                 }
 
-                install(Routing)
+                routing {
+                    runBlocking {
+                        createCdnEndpoints()
+                    }
+                }
+
                 install(NoelKtorRoutingPlugin) {
                     endpointLoader = KoinEndpointLoader
                 }

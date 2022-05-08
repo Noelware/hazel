@@ -49,7 +49,7 @@ suspend fun Routing.createCdnEndpoints() {
 
     log.debug("Configuring CDN endpoints...")
     val contents = storage.listAll()
-    log.info("Found ${contents.size} items to create as routes!")
+    log.debug("Found ${contents.size} items to create as routes!")
 
     for (content in contents) {
         val name = if (storage.trailer is FilesystemStorageTrailer) {
@@ -61,7 +61,7 @@ suspend fun Routing.createCdnEndpoints() {
         }
 
         log.debug("Found route $name to register!")
-        get(name) {
+        get("/$name") {
             callOnRoute(content, call, storage, name)
         }
     }
@@ -182,7 +182,7 @@ private suspend fun callOnRoute(
     storage: StorageWrapper,
     name: String
 ) {
-    val stream = storage.open(if (storage.trailer is FilesystemStorageTrailer) "./${name.substring(1)}" else name)
+    val stream = storage.open(if (storage.trailer is FilesystemStorageTrailer) "./$name" else name)
     if (stream == null) {
         call.respond(
             HttpStatusCode.NotFound,
@@ -220,7 +220,6 @@ private suspend fun callOnRoute(
 
     val contentType = ContentType.parse(rawContentType)
     val shouldDownload = when {
-        call.request.queryParameters["download"] != null -> true
         contentType.match(ContentType.Application.GZip) -> true
         contentType.match(ContentType.Application.OctetStream) -> true
         contentType.match(ContentType.Application.Zip) -> true
@@ -228,20 +227,12 @@ private suspend fun callOnRoute(
     }
 
     if (shouldDownload) {
-        if (call.response.isCommitted) return
-
-        call.response.header(
-            HttpHeaders.ContentDisposition,
-            "attachment; filename=\"${name.substring(1).split("/").last()}\""
-        )
-
-        // Close the stream so we don't memory leak
-        withContext(Dispatchers.IO) {
-            stream.close()
+        if (!call.response.isCommitted) {
+            call.response.header(
+                HttpHeaders.ContentDisposition,
+                "attachment; filename=\"${name.split("/").last()}\""
+            )
         }
-
-        call.respond(HttpStatusCode.NoContent)
-        return
     }
 
     // Check if it is an image, if so, let's do some image manipulation!
