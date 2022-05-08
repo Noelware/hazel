@@ -26,6 +26,7 @@ import io.ktor.server.response.*
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.apache.commons.lang3.time.StopWatch
+import org.noelware.remi.filesystem.FilesystemStorageTrailer
 import java.util.concurrent.TimeUnit
 
 class ListFilesEndpoint(private val trailer: StorageWrapper, private val config: Config): AbstractEndpoint("/list") {
@@ -33,10 +34,6 @@ class ListFilesEndpoint(private val trailer: StorageWrapper, private val config:
         val stopwatch = StopWatch.createStarted()
         val files = trailer.listAll()
         stopwatch.stop()
-
-        val baseUrl = config.baseUrl.ifEmpty {
-            "http://${config.server.host}:${config.server.port}"
-        }
 
         val payload = buildJsonObject {
             put("success", true)
@@ -49,9 +46,17 @@ class ListFilesEndpoint(private val trailer: StorageWrapper, private val config:
                         put(
                             file.name,
                             buildJsonObject {
-                                put("endpoint", "$baseUrl/${file.name}")
+                                put(
+                                    "endpoint",
+                                    if (trailer.trailer is FilesystemStorageTrailer) {
+                                        file.name
+                                            .replace(System.getProperty("user.dir", ""), "")
+                                            .replace(trailer.trailer.config.directory, "")
+                                    } else {
+                                        file.name
+                                    }
+                                )
                                 put("name", file.name)
-                                put("content_type", file.contentType)
                                 put("will_prompt_download", file.contentType.startsWith("application/octet-stream"))
                                 put("size", file.size.toDouble())
                                 put("created_at", file.createdAt.toString())

@@ -87,32 +87,6 @@ class StorageWrapper(config: StorageConfig) {
      */
     suspend fun open(path: String): InputStream? = trailer.open(path)
 
-    /**
-     * Deletes the file under the [path] and returns a [Boolean] if the
-     * operation was a success or not.
-     */
-    suspend fun delete(path: String): Boolean = trailer.delete(path)
-
-    /**
-     * Checks if the file exists under this storage trailer.
-     * @param path The path to find the file.
-     */
-    suspend fun exists(path: String): Boolean = trailer.exists(path)
-
-    /**
-     * Uploads file to this storage trailer and returns a [Boolean] result
-     * if the operation was a success or not.
-     *
-     * @param path The path to upload the file to
-     * @param stream The [InputStream] that represents the raw data.
-     * @param contentType The content type of the file (useful for S3 and GCS support)!
-     */
-    suspend fun upload(
-        path: String,
-        stream: InputStream,
-        contentType: String = "application/octet-stream"
-    ): Boolean = trailer.upload(path, stream, contentType)
-
     suspend fun listAll(force: Boolean = true): List<org.noelware.remi.core.Object> =
         if (force || listCache.isEmpty()) {
             val c = trailer.listAll()
