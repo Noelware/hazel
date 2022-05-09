@@ -125,7 +125,7 @@ dependencies {
     implementation("io.ktor:ktor-server-cors")
 
     // Koin
-    implementation("io.insert-koin:koin-core:3.1.6")
+    implementation("io.insert-koin:koin-core:3.2.0")
 
     // Logging with logback
     implementation("net.logstash.logback:logstash-logback-encoder:7.1.1")
