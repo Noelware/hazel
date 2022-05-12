@@ -87,7 +87,7 @@ dependencies {
     implementation(kotlin("reflect"))
 
     // BOMs
-    api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.3.2"))
+    api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.3.3"))
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1"))
     api(platform("org.noelware.ktor:ktor-routing-bom:0.1-beta"))
     testImplementation(platform("io.kotest:kotest-bom:5.3.0"))
