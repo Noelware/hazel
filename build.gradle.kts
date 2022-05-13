@@ -137,7 +137,7 @@ dependencies {
     implementation("org.codehaus.janino:janino:3.1.7")
 
     // Sentry
-    implementation("io.sentry:sentry:5.7.3")
+    implementation("io.sentry:sentry:5.7.4")
     implementation("io.sentry:sentry-logback:5.7.3")
     implementation("io.sentry:sentry-kotlin-extensions:5.7.3")
 
