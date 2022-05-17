@@ -15,19 +15,23 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel.data
+window.$log.info('Determing CDN version...');
 
-import kotlinx.serialization.SerialName
+(async() => {
+  const bits = new URL(window.location.href);
+  const data = await fetch(`${bits.protocol}://${bits.hostname}${bits.port}/info`, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(r => r.json());
 
-@kotlinx.serialization.Serializable
-data class Config(
-    @SerialName("base_url")
-    val baseUrl: String = "",
+  if (!data.success) {
+    const error = new Error(`Unable to request to ${bits.protocol}://${bits.hostname}${bits.port}/info`);
+    error.data = data.errors.map(error => `   - ${error.code}: ${error.message}`);
 
-    @SerialName("sentry_dsn")
-    val sentryDsn: String? = null,
+    window.$log.error(`Unable to request to ${bits.protocol}://${bits.hostname}${bits.port}/info:`, error);
+    throw error;
+  }
 
-    val frontend: Boolean = false,
-    val storage: StorageConfig,
-    val server: KtorServerConfig = KtorServerConfig(),
-)
+  window.$log.info(JSON.stringify(data));
+})();

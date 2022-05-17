@@ -15,19 +15,22 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel.data
+class Logger {
+  info(message) {
+    console.info(`[INFO] ${message}`);
+  }
 
-import kotlinx.serialization.SerialName
+  error(message, error) {
+    if (!error) {
+      console.error(`[ERROR] ${message}`);
+    } else {
+      console.error(`[ERROR] ${message}\n${error}`);
+    }
+  }
 
-@kotlinx.serialization.Serializable
-data class Config(
-    @SerialName("base_url")
-    val baseUrl: String = "",
+  warn(message) {
+    console.warn(`[WARN] ${message}`);
+  }
+}
 
-    @SerialName("sentry_dsn")
-    val sentryDsn: String? = null,
-
-    val frontend: Boolean = false,
-    val storage: StorageConfig,
-    val server: KtorServerConfig = KtorServerConfig(),
-)
+window.$log = new Logger();

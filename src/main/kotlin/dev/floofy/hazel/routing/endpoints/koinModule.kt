@@ -23,8 +23,8 @@ import org.noelware.ktor.endpoints.AbstractEndpoint
 
 val endpointsModule = module {
     single { ListFilesEndpoint(get(), get()) } bind AbstractEndpoint::class
+    single { MainEndpoint(get()) } bind AbstractEndpoint::class
     single { HeartbeatEndpoint() } bind AbstractEndpoint::class
     single { FaviconEndpoint() } bind AbstractEndpoint::class
     single { InfoEndpoint() } bind AbstractEndpoint::class
-    single { MainEndpoint() } bind AbstractEndpoint::class
 }

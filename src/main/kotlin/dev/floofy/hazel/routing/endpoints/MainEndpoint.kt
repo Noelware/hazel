@@ -17,17 +17,40 @@
 
 package dev.floofy.hazel.routing.endpoints
 
+import dev.floofy.hazel.data.Config
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.mustache.*
 import io.ktor.server.response.*
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.endpoints.Get
 
-class MainEndpoint: AbstractEndpoint("/") {
+class MainEndpoint(private val config: Config): AbstractEndpoint("/") {
+    private fun isBooleanValue(key: String): Boolean = Regex("(yes|no|true|false|0|1)").matches(key)
+
     @Get
     suspend fun call(call: ApplicationCall) {
+        val json = call.request.queryParameters["json"]
+
+        if (json != null && isBooleanValue(json)) {
+            call.respond(
+                HttpStatusCode.OK,
+                buildJsonObject {
+                    put("success", true)
+                    put("message", "hello world!")
+                }
+            )
+
+            return
+        }
+
+        if (config.frontend) {
+            call.respond(HttpStatusCode.OK, MustacheContent("index.hbs", mapOf("owo" to "uwu"), null, ContentType.Text.Html))
+            return
+        }
+
         call.respond(
             HttpStatusCode.OK,
             buildJsonObject {

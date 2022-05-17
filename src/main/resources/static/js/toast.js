@@ -15,19 +15,13 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel.data
+/**
+ * Represents the toast API hazel uses to display toasts.
+ */
+class ToastApi {
+  constructor() {
+    window.$log.info('Initialized toast API.');
+  }
+}
 
-import kotlinx.serialization.SerialName
-
-@kotlinx.serialization.Serializable
-data class Config(
-    @SerialName("base_url")
-    val baseUrl: String = "",
-
-    @SerialName("sentry_dsn")
-    val sentryDsn: String? = null,
-
-    val frontend: Boolean = false,
-    val storage: StorageConfig,
-    val server: KtorServerConfig = KtorServerConfig(),
-)
+window.toasts = new ToastApi();

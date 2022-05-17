@@ -120,6 +120,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auto-head-response")
     implementation("io.ktor:ktor-server-default-headers")
     implementation("io.ktor:ktor-server-status-pages")
+    implementation("io.ktor:ktor-server-mustache")
     implementation("io.ktor:ktor-serialization")
     implementation("io.ktor:ktor-server-netty")
     implementation("io.ktor:ktor-server-cors")
@@ -165,6 +166,24 @@ spotless {
     kotlin {
         trimTrailingWhitespace()
         licenseHeaderFile("${rootProject.projectDir}/assets/HEADING")
+        endWithNewline()
+
+        // We can't use the .editorconfig file, so we'll have to specify it here
+        // issue: https://github.com/diffplug/spotless/issues/142
+        // ktlint 0.35.0 (default for Spotless) doesn't support trailing commas
+        ktlint("0.43.0")
+            .userData(
+                mapOf(
+                    "no-consecutive-blank-lines" to "true",
+                    "no-unit-return" to "true",
+                    "disabled_rules" to "no-wildcard-imports,colon-spacing",
+                    "indent_size" to "4"
+                )
+            )
+    }
+
+    kotlinGradle {
+        trimTrailingWhitespace()
         endWithNewline()
 
         // We can't use the .editorconfig file, so we'll have to specify it here

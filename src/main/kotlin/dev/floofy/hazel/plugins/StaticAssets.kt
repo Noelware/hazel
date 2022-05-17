@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel.data
+package dev.floofy.hazel.plugins
 
-import kotlinx.serialization.SerialName
+import io.ktor.server.application.*
+import io.ktor.server.http.content.*
+import io.ktor.server.routing.*
 
-@kotlinx.serialization.Serializable
-data class Config(
-    @SerialName("base_url")
-    val baseUrl: String = "",
+val HazelStaticAssets = createApplicationPlugin("HazelStaticAssets") {
+    val routing = application.plugin(Routing)
 
-    @SerialName("sentry_dsn")
-    val sentryDsn: String? = null,
+    routing.static("/assets") {
+        staticBasePackage = "static"
 
-    val frontend: Boolean = false,
-    val storage: StorageConfig,
-    val server: KtorServerConfig = KtorServerConfig(),
-)
+        resources("css")
+        resources("js")
+    }
+}

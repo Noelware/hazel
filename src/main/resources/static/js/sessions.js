@@ -15,19 +15,14 @@
  * limitations under the License.
  */
 
-package dev.floofy.hazel.data
+class SessionStore {
+  constructor() {
+    window.$log.info('Initialized session store!');
+  }
 
-import kotlinx.serialization.SerialName
+  async login(username, password) {
+    
+  }
+}
 
-@kotlinx.serialization.Serializable
-data class Config(
-    @SerialName("base_url")
-    val baseUrl: String = "",
-
-    @SerialName("sentry_dsn")
-    val sentryDsn: String? = null,
-
-    val frontend: Boolean = false,
-    val storage: StorageConfig,
-    val server: KtorServerConfig = KtorServerConfig(),
-)
+window.sessions = new SessionStore();

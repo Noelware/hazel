@@ -17,9 +17,11 @@
 
 package dev.floofy.hazel
 
+import com.github.mustachejava.DefaultMustacheFactory
 import dev.floofy.hazel.core.Ticker
 import dev.floofy.hazel.core.createThreadFactory
 import dev.floofy.hazel.data.Config
+import dev.floofy.hazel.extensions.resourcePath
 import dev.floofy.hazel.plugins.KtorLoggingPlugin
 import dev.floofy.hazel.plugins.UserAgentPlugin
 import dev.floofy.hazel.routing.createCdnEndpoints
@@ -30,6 +32,8 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.content.*
+import io.ktor.server.mustache.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -108,6 +112,10 @@ class Hazel {
                 install(UserAgentPlugin)
                 install(ContentNegotiation) {
                     json(GlobalContext.retrieve())
+
+                    if (config.frontend) {
+                        ignoreType<MustacheContent>()
+                    }
                 }
 
                 install(CORS) {
@@ -131,25 +139,28 @@ class Hazel {
                 }
 
                 install(StatusPages) {
-                    // If the route was not found :(
-                    status(HttpStatusCode.NotFound) { call, _ ->
-                        call.respond(
-                            HttpStatusCode.NotFound,
-                            buildJsonObject {
-                                put("success", false)
-                                put(
-                                    "errors",
-                                    buildJsonArray {
-                                        add(
-                                            buildJsonObject {
-                                                put("message", "Route ${call.request.httpMethod.value} ${call.request.uri} was not found.")
-                                                put("code", "UNKNOWN_ROUTE")
-                                            }
-                                        )
-                                    }
-                                )
-                            }
-                        )
+                    // This is used if there is no content length (since Hazel sets
+                    // it in the outgoing content)
+                    statuses[HttpStatusCode.NotFound] = { call, content, _ ->
+                        if (content.contentLength == null) {
+                            call.respond(
+                                HttpStatusCode.NotFound,
+                                buildJsonObject {
+                                    put("success", false)
+                                    put(
+                                        "errors",
+                                        buildJsonArray {
+                                            add(
+                                                buildJsonObject {
+                                                    put("code", "UNKNOWN_ROUTE")
+                                                    put("message", "Route ${call.request.httpMethod.value} ${call.request.uri} was not found.")
+                                                }
+                                            )
+                                        }
+                                    )
+                                }
+                            )
+                        }
                     }
 
                     // If the route has a different method handler
@@ -201,6 +212,15 @@ class Hazel {
                 }
 
                 routing {
+                    if (config.frontend) {
+                        resourcePath("/static/css/hazel.css")
+                        resourcePath("/static/css/normalize.css")
+                        resourcePath("/static/js/logger.js")
+                        resourcePath("/static/js/main.js")
+                        resourcePath("/static/js/sessions.js")
+                        resourcePath("/static/js/token.js")
+                    }
+
                     runBlocking {
                         createCdnEndpoints()
                     }
@@ -208,6 +228,14 @@ class Hazel {
 
                 install(NoelKtorRoutingPlugin) {
                     endpointLoader = KoinEndpointLoader
+                }
+
+                if (config.frontend) {
+                    log.info("Frontend is enabled! Enabling Mustache plugin...")
+
+                    install(Mustache) {
+                        mustacheFactory = DefaultMustacheFactory("templates")
+                    }
                 }
             }
         }

@@ -567,3 +567,4 @@ config.toml
 .hazel/data
 src/main/resources/config/logging.properties
 !src/main/resources/config/logging.example.properties
+tailwindcss/node_modules
