@@ -15,16 +15,11 @@
  * limitations under the License.
  */
 
-rootProject.name = "hazel"
+plugins {
+    `hazel-module`
+}
 
-include(
-    ":client",
-    ":cli",
-    ":plugins:core",
-    ":plugins:gradle-plugin",
-    ":plugins:maven-shields",
-    ":plugins:redis",
-    ":plugins:registry",
-    ":server",
-    ":site"
-)
+dependencies {
+    implementation("com.github.ajalt.mordant:mordant:2.0.0-beta6")
+    implementation("org.noelware.ai:ai:1.1-beta")
+}

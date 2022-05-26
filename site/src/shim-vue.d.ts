@@ -15,16 +15,9 @@
  * limitations under the License.
  */
 
-rootProject.name = "hazel"
+declare module '*.vue' {
+  import { DefineComponent } from 'vue';
+  const Component: DefineComponent;
 
-include(
-    ":client",
-    ":cli",
-    ":plugins:core",
-    ":plugins:gradle-plugin",
-    ":plugins:maven-shields",
-    ":plugins:redis",
-    ":plugins:registry",
-    ":server",
-    ":site"
-)
+  export default Component;
+}

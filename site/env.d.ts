@@ -15,16 +15,5 @@
  * limitations under the License.
  */
 
-rootProject.name = "hazel"
-
-include(
-    ":client",
-    ":cli",
-    ":plugins:core",
-    ":plugins:gradle-plugin",
-    ":plugins:maven-shields",
-    ":plugins:redis",
-    ":plugins:registry",
-    ":server",
-    ":site"
-)
+/// <reference types="vite/client" />
+/// <reference types="vite-plugin-pages/client" />

@@ -1,15 +1,18 @@
 # 🪶 ヘイゼル hazel • [![ktlint](https://github.com/auguwu/hazel/actions/workflows/lint.yml/badge.svg?branch=master)](https://github.com/auguwu/hazel/actions/workflows/lint.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/auguwu/hazel?label=Docker%3A%20auguwu%2Fhazel&style=flat-square)](https://hub.docker.com/r/auguwu/hazel) [![GitHub Sponsors](https://img.shields.io/github/sponsors/auguwu?style=flat-square)](https://github.com/sponsors/auguwu)
 
-> *Minimal, simple, and open source content delivery network made in Kotlin*
+> Minimal, simple, and open source content delivery network made in Kotlin
+
+## Features
+- 👀 **Store and Load from Anywhere** - **hazel** can work in multiple providers like your local disk or Amazon S3! It uses [remi](https://remi.noelware.org)
+                                        under the hood, so you can stash your data anywhere and **hazel** can use it to build the endpoints.
+
+- 📤 **Extendable** - **hazel** has a plugin system to extend the functionality of **hazel**.
+- 💻 **Clean UI** - **hazel** comes built in with a web dashboard to see your files! :mag: or you can stick with the JSON API... :c
+- ⚡ **Robust** - **hazel** was built to be performant, and speedy... but sometimes, it can't do it on large files. :( (~2GB)
 
 ## Why?
 **hazel** (case-sensitive) was in mind of being a reliable CDN service to be simple to configure without doing anything but
-hosting your content from different providers.
-
-**hazel** supports the following providers:
-
-- Using the local **filesystem**,
-- Using **Amazon S3** or an Amazon S3 compatible service
+hosting your content from different providers, setting up CNAMEs, and all of that other stuff. **hazel** takes care of it all!
 
 ## Installation
 You can install **hazel** through [Docker](#docker), the [Helm Chart](#helm-chart), or locally with [Git](#git).
@@ -68,7 +71,7 @@ that will be searched in the root directory or under `HAZEL_CONFIG_PATH` environ
 
 ```toml
 # Enables Sentry on the server, you will get errors and transactions on http requests and such.
-sentry_dsn = ...
+sentry_dsn = "heck"
 
 # Configures the Netty engine for Ktor, read more here:
 # https://ktor.io/docs/engines.html#embedded-server-configure

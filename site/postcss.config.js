@@ -15,16 +15,9 @@
  * limitations under the License.
  */
 
-rootProject.name = "hazel"
-
-include(
-    ":client",
-    ":cli",
-    ":plugins:core",
-    ":plugins:gradle-plugin",
-    ":plugins:maven-shields",
-    ":plugins:redis",
-    ":plugins:registry",
-    ":server",
-    ":site"
-)
+module.exports = {
+  plugins: {
+    autoprefixer: {},
+    tailwindcss: {}
+  }
+};

@@ -1,0 +1,135 @@
+# 🪶 hazel: Minimal, simple, and open source content delivery network made in Kotlin
+# Copyright 2022 Noel <cutie@floofy.dev>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This is the default configuration for `hazel`. To load the configuration,
+# you can use `hazel -c ./config/config.toml` or using the `HAZEL_CONFIG_PATH`
+# environment variables.
+
+# This is the Sentry DSN to configure Sentry output with hazel.
+# @type: string?
+# @default: nil
+sentry_dsn = "..."
+
+# This enables the frontend UI that you can access!
+# @type: boolean
+# @default: false
+frontend = true
+
+# This configures the storage store that hazel uses to deliver content!
+[storage]
+# This is the storage class. At the moment, hazel doesn't infer what storage configuration
+# you're using (from `storage.[fs|filesystem|s3]`).
+#
+# @type: "filesystem" | "fs" | "s3"
+# @default: "filesystem"
+class = "filesystem"
+
+# This configures the local disk to be used to serve content. You can use `fs`
+# (and set `storage.class` to fs) for the same result.
+#
+# @type: hazel.config.FilesystemConfig (https://docs.floofy.dev/hazel/configuration#type-FilesystemConfig)
+# @default: { directory: "./.hazel" }
+[storage.filesystem]
+# This will use `<current directory>/.hazel` as the directory to serve content. If the directory
+# doesn't exist, hazel will attempt to create it.
+#
+# `./` indicates the current directory where hazel was invoked,
+# `~/` refers to the user's home directory (C:\\Users\\<name>, /home/<name>)
+directory = "./.hazel"
+
+# Look at the above comment for documentation.
+# [storage.fs]
+# directory = "./.hazel"
+
+# This configures using an Amazon S3 bucket to serve content.
+# @type: hazel.config.AmazonS3Config (https://docs.floofy.dev/hazel/configuration#type-AmazonS3Config)
+# @default: nil
+[storage.s3]
+# If the S3 client should enable AWS Signer v4 for all requests when requesting to Amazon S3. This must be true
+# for MinIO connections. Read more here - https://docs.min.io/docs/how-to-use-aws-sdk-for-java-with-minio-server.html
+#
+# @type: bool
+# @default: false
+enable_signer_requests = false
+
+# If the new path style should be enabled for S3 connections. You can read more here:
+# https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/s3/AmazonS3Builder.html#setPathStyleAccessEnabled-java.lang.Boolean-
+#
+# This must be set to `true` for MinIO connections.
+# @type: bool
+# @default: false
+enforce_path_access_style = false
+
+# The default access control level for creating objects in the current bucket.
+#
+# @type: hazel.config.s3.ObjectCannedACL (https://docs.floofy.dev/hazel/configuration#type-ObjectCannedACL)
+# @default: "bucket-owner-full-control"
+default_object_acl = "bucket-owner-full-control"
+
+# The default access control level for constructing a bucket IF the bucket doesn't exist.
+#
+# @type: hazel.config.s3.BucketCannedACL (https://docs.floofy.dev/hazel/configuration#type-ObjectCannedACL)
+# @default: "public-read"
+default_bucket_acl = "public-read"
+
+# Returns the secret key to authenticate with Amazon S3. hazel will try to find the secret key from:
+#    - `aws.secret_key` JVM system property (`HAZEL_JAVA_OPTS="-Daws.secret_key=..." hazel -c ./config/config.toml`)
+#    - `AWS_SECRET_KEY` environment variable,
+#    - If the `~/.aws/config` file exists, or uses the `AWS_CONFIG_FILE` environment variable to determine
+#      the location of the configuration.
+#    - Finding a profile under the `AWS_PROFILE` environment variable if `~/.aws/config` exists or using
+#      the `aws.profile` JVM system property (`HAZEL_JAVA_OPTS="-Daws.profile=..." hazel -c ./config/config.toml`)
+#    - If any of the above fails, it will throw an exception.
+#
+# @type: string?
+# @default: nil
+secret_key = "..."
+
+# Returns the access key ID to authenticate with Amazon S3. hazel will try to find the secret key from:
+#    - `aws.acess_key` JVM system property (`HAZEL_JAVA_OPTS="-Daws.access_key=..." hazel -c ./config/config.toml`)
+#    - `AWS_ACCESS_KEY` environment variable,
+#    - If the `~/.aws/config` file exists, or uses the `AWS_CONFIG_FILE` environment variable to determine
+#      the location of the configuration.
+#    - Finding a profile under the `AWS_PROFILE` environment variable if `~/.aws/config` exists or using
+#      the `aws.profile` JVM system property (`HAZEL_JAVA_OPTS="-Daws.profile=..." hazel -c ./config/config.toml`)
+#    - If any of the above fails, it will throw an exception.
+#
+# @type: string?
+# @default: nil
+access_key = "..."
+
+# Returns the endpoint to connect to any Amazon S3 compatible server.
+# @type: string?
+# @default: nil
+endpoint = "..."
+
+# Returns the bucket region to use.
+# @type: hazel.s3.config.Region (https://docs.floofy.dev/hazel/configuration#type-Region)
+# @default: "us-east-1"
+region = "us-east-1"
+
+# Returns the bucket to use.
+# @type: string
+# @default: "hazel"
+bucket = "hazel"
+
+# This is the configuration for interacting with the Hazel keystore.
+#
+# @type: hazel.config.KeystoreConfig (https://docs.floofy.dev/hazel/configuration#type-KeystoreConfig)
+# @default:
+#   - keystore.path -> $ROOT/.hazel/keystore.jks
+#   - keystore.pwd -> nil
+[keystore]
+path = "./keystore.jks"

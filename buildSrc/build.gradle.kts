@@ -15,16 +15,24 @@
  * limitations under the License.
  */
 
-rootProject.name = "hazel"
+plugins {
+    `kotlin-dsl`
+}
 
-include(
-    ":client",
-    ":cli",
-    ":plugins:core",
-    ":plugins:gradle-plugin",
-    ":plugins:maven-shields",
-    ":plugins:redis",
-    ":plugins:registry",
-    ":server",
-    ":site"
-)
+repositories {
+    maven("https://maven.floofy.dev/repo/releases")
+    gradlePluginPortal()
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.17.2")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.6.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1") // shhhh
+    implementation(kotlin("gradle-plugin", version = "1.6.21"))
+    implementation(kotlin("serialization", version = "1.6.21"))
+    implementation("io.kotest:kotest-gradle-plugin:0.3.9")
+    implementation("dev.floofy.commons:gradle:2.1.0.1")
+    implementation(gradleApi())
+}

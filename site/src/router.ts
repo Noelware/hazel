@@ -15,16 +15,12 @@
  * limitations under the License.
  */
 
-rootProject.name = "hazel"
+import { createRouter, createWebHistory } from 'vue-router';
+import routes from '~pages';
 
-include(
-    ":client",
-    ":cli",
-    ":plugins:core",
-    ":plugins:gradle-plugin",
-    ":plugins:maven-shields",
-    ":plugins:redis",
-    ":plugins:registry",
-    ":server",
-    ":site"
-)
+console.log(routes);
+
+export default createRouter({
+  history: createWebHistory(),
+  routes
+});

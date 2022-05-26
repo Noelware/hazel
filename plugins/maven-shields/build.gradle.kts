@@ -14,17 +14,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-rootProject.name = "hazel"
-
-include(
-    ":client",
-    ":cli",
-    ":plugins:core",
-    ":plugins:gradle-plugin",
-    ":plugins:maven-shields",
-    ":plugins:redis",
-    ":plugins:registry",
-    ":server",
-    ":site"
-)

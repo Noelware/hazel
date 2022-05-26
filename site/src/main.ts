@@ -15,16 +15,13 @@
  * limitations under the License.
  */
 
-rootProject.name = "hazel"
+import { createHead } from '@vueuse/head';
+import { createApp } from 'vue';
+import router from './router';
+import App from './App.vue';
 
-include(
-    ":client",
-    ":cli",
-    ":plugins:core",
-    ":plugins:gradle-plugin",
-    ":plugins:maven-shields",
-    ":plugins:redis",
-    ":plugins:registry",
-    ":server",
-    ":site"
-)
+// why
+import './styles/style.scss';
+import './styles/hljs.css';
+
+createApp(App).use(router).use(createHead()).mount('#app');

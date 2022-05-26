@@ -778,13 +778,3 @@ FodyWeavers.xsd
 
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
-
-# other
-config.toml
-.hazel/keystore.jks
-.hazel/data
-src/main/resources/config/logging.properties
-!src/main/resources/config/logging.example.properties
-!distribution/config/config.toml
-!distribution/bin
-!site/.yarn/releases
