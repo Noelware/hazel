@@ -159,7 +159,7 @@ dependencies {
 
     // TOML
     implementation("com.akuleshov7:ktoml-core:0.2.12")
-    implementation("com.akuleshov7:ktoml-file:0.2.11")
+    implementation("com.akuleshov7:ktoml-file:0.2.12")
 }
 
 spotless {
