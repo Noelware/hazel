@@ -145,7 +145,7 @@ dependencies {
     // Prometheus (for metrics)
     implementation("io.prometheus:simpleclient_hotspot:0.15.0")
     implementation("io.prometheus:simpleclient_common:0.15.0")
-    implementation("io.prometheus:simpleclient:0.15.0")
+    implementation("io.prometheus:simpleclient:0.16.0")
 
     // Remi
     implementation("org.noelware.remi:remi-support-minio")
