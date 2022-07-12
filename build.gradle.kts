@@ -158,7 +158,7 @@ dependencies {
     implementation("org.noelware.ktor:loader-koin")
 
     // TOML
-    implementation("com.akuleshov7:ktoml-core:0.2.12")
+    implementation("com.akuleshov7:ktoml-core:0.2.13")
     implementation("com.akuleshov7:ktoml-file:0.2.12")
 }
 
