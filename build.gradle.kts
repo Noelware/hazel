@@ -132,7 +132,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:7.2")
     implementation("ch.qos.logback:logback-classic:1.4.0")
     implementation("ch.qos.logback:logback-core:1.4.0")
-    api("org.slf4j:slf4j-api:2.0.0")
+    api("org.slf4j:slf4j-api:2.0.1")
 
     // Conditional logic for logback
     implementation("org.codehaus.janino:janino:3.1.8")
