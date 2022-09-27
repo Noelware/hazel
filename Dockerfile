@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Create a builder stage, where hazel is built.
-FROM eclipse-temurin:18-jdk-alpine AS builder
+FROM eclipse-temurin:19-jdk-alpine AS builder
 
 # Install git, which is required for metadata purposes
 RUN apk update && apk add --no-cache git ca-certificates
@@ -33,7 +33,7 @@ RUN ./gradlew installDist --stacktrace --no-daemon
 
 # Create the last stage, which is the runtime image where
 # hazel is ran as a container!
-FROM eclipse-temurin:18-jdk-alpine
+FROM eclipse-temurin:19-jdk-alpine
 
 # Install bash, which is required to execute the Docker scripts
 # We will also install `tini`, which is a valid "init" for containers.
