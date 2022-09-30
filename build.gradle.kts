@@ -93,7 +93,7 @@ dependencies {
     testImplementation(platform("io.kotest:kotest-bom:5.4.2"))
     api(platform("org.noelware.remi:remi-bom:0.1.4-beta.3"))
     api(platform("dev.floofy.commons:commons-bom:2.1.1"))
-    api(platform("io.ktor:ktor-bom:2.1.1"))
+    api(platform("io.ktor:ktor-bom:2.1.2"))
 
     // kotlinx.coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
