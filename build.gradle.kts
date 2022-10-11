@@ -139,7 +139,7 @@ dependencies {
 
     // Sentry
     implementation("io.sentry:sentry:6.5.0")
-    implementation("io.sentry:sentry-logback:6.4.3")
+    implementation("io.sentry:sentry-logback:6.5.0")
     implementation("io.sentry:sentry-kotlin-extensions:6.5.0")
 
     // Prometheus (for metrics)
