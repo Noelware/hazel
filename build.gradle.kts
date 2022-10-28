@@ -40,7 +40,7 @@ buildscript {
 plugins {
     kotlin("plugin.serialization") version "1.7.10"
     id("com.diffplug.spotless") version "6.11.0"
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.7.20"
     id("io.kotest") version "0.3.9"
     application
 }
