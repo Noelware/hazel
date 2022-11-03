@@ -90,7 +90,7 @@ dependencies {
     api(platform("org.jetbrains.kotlinx:kotlinx-serialization-bom:1.4.1"))
     api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.4"))
     api(platform("org.noelware.ktor:ktor-routing-bom:0.1-beta"))
-    testImplementation(platform("io.kotest:kotest-bom:5.5.3"))
+    testImplementation(platform("io.kotest:kotest-bom:5.5.4"))
     api(platform("org.noelware.remi:remi-bom:0.1.4-beta.3"))
     api(platform("dev.floofy.commons:commons-bom:2.1.1"))
     api(platform("io.ktor:ktor-bom:2.1.3"))
