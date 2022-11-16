@@ -135,7 +135,7 @@ dependencies {
     api("org.slf4j:slf4j-api:2.0.3")
 
     // Conditional logic for logback
-    implementation("org.codehaus.janino:janino:3.1.8")
+    implementation("org.codehaus.janino:janino:3.1.9")
 
     // Sentry
     implementation("io.sentry:sentry:6.7.0")
