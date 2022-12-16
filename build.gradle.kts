@@ -92,7 +92,7 @@ dependencies {
     api(platform("org.noelware.ktor:ktor-routing-bom:0.1-beta"))
     testImplementation(platform("io.kotest:kotest-bom:5.5.4"))
     api(platform("org.noelware.remi:remi-bom:0.1.4-beta.3"))
-    api(platform("dev.floofy.commons:commons-bom:2.1.1"))
+    api(platform("dev.floofy.commons:commons-bom:2.4.0"))
     api(platform("io.ktor:ktor-bom:2.2.1"))
 
     // kotlinx.coroutines
