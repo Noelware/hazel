@@ -1,0 +1,6 @@
+{
+  "is_nightly_build": "${is_nightly_build}",
+  "commit_hash": "${commit_hash}",
+  "build_date": "${build_date}",
+  "version": "${version}"
+}
