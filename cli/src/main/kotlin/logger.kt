@@ -45,19 +45,19 @@ private fun getCurrentDate(): String = DATE_FORMATTER.format(Date())
 
 object Logger {
     fun info(vararg messages: String) {
-        println("${(INFO_COLOR + bold)("info")}    | ${(PINK + bold)(getCurrentDate())} ~ ${messages.joinToString(System.lineSeparator())}")
+        println("${(INFO_COLOR + bold)("info")}  | ${(PINK + bold)(getCurrentDate())} ~ ${messages.joinToString(System.lineSeparator())}")
     }
 
     fun warn(vararg messages: String) {
-        println("${(WARN_COLOR + bold)("warn")}    | ${(PINK + bold)(getCurrentDate())} ~ ${messages.joinToString(System.lineSeparator())}")
+        println("${(WARN_COLOR + bold)("warn")}  | ${(PINK + bold)(getCurrentDate())} ~ ${messages.joinToString(System.lineSeparator())}")
     }
 
     fun error(vararg messages: String) {
-        println("${(ERROR_COLOR + bold)("error")}   | ${(PINK + bold)(getCurrentDate())} ~ ${messages.joinToString(System.lineSeparator())}")
+        println("${(ERROR_COLOR + bold)("error")} | ${(PINK + bold)(getCurrentDate())} ~ ${messages.joinToString(System.lineSeparator())}")
     }
 
     fun fatal(vararg messages: String) {
-        println("${(ERROR_COLOR + bold)("fatal")}   | ${(PINK + bold)(getCurrentDate())} ~ ${messages.joinToString(System.lineSeparator())}")
+        println("${(ERROR_COLOR + bold)("fatal")} | ${(PINK + bold)(getCurrentDate())} ~ ${messages.joinToString(System.lineSeparator())}")
         exitProcess(1)
     }
 

@@ -27,10 +27,11 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.Terminal
 import org.noelware.hazel.HazelInfo
+import org.noelware.hazel.cli.commands.GenerateConfigCommand
 import org.noelware.hazel.cli.commands.ServerCommand
 import kotlin.system.exitProcess
 
-private class HazelCli(private val terminal: Terminal): CliktCommand(
+private class HazelCli(terminal: Terminal): CliktCommand(
     help = "Command line runner for managing Hazel",
     name = "hazel",
     printHelpOnEmptyArgs = true,
@@ -46,6 +47,7 @@ private class HazelCli(private val terminal: Terminal): CliktCommand(
 
         subcommands(
             CompletionCommand(name = "completions"),
+            GenerateConfigCommand(terminal),
             ServerCommand(terminal)
         )
     }

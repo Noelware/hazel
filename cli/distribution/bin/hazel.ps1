@@ -51,6 +51,7 @@ function FindJavaFromRegistry {
 }
 
 $DistributionType = [Environment]::GetEnvironmentVariable("HAZEL_DISTRIBUTION_TYPE") ?? "local";
+$IsDebugMode = [Environment]::GetEnvironmentVariable("HAZEL_DEBUG") ?? "false";
 $ResolvedJavaOpts = $(
     "-Djava.awt.headless=true",
     "-XX:+HeapDumpOnOutOfMemoryError",
@@ -70,14 +71,19 @@ if ($OtherJavaOpts.Length -ne 0) {
 }
 
 $JavaOpts = $ResolvedJavaOpts -join " "
-Write-Host "[preinit] Resolved JAVA_OPTS ===> $JavaOpts"
+if ($IsDebugMode -eq "true") {
+    Write-Host "[DEBUG :: preinit] Resolved JAVA_OPTS ===> $JavaOpts"
+}
 
 $JavaExec = ""
 if ($env:JAVA_HOME) {
     $ext = if ($IsMacOS -or $IsLinux) { "" } else { ".exe" }
     $java = Get-Command -ErrorAction SilentlyContinue $(Join-Path $env:JAVA_HOME "bin/java$ext")
     if ($java) {
-        Write-Host "[preinit] Found Java via JAVA_HOME ($env:JAVA_HOME)"
+        if ($IsDebugMode -eq "true") {
+            Write-Host "[preinit] Found Java via JAVA_HOME ($env:JAVA_HOME)"
+        }
+
         $JavaExec = $java
     }
 } else {
@@ -85,7 +91,10 @@ if ($env:JAVA_HOME) {
     $ext = if ($IsMacOS -or $IsLinux) { "" } else { ".exe" }
     $java1 = Get-Command "java$ext" -ErrorAction SilentlyContinue
     if ($java1) {
-        Write-Host "[preinit] Found Java via PATH"
+        if ($IsDebugMode -eq "true") {
+            Write-Host "[preinit] Found Java via PATH"
+        }
+
         $JavaExec = $java1
     }
 

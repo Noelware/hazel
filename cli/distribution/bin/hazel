@@ -50,7 +50,8 @@ done
 APP_HOME=$( cd "${APP_HOME:-./}" && pwd -P ) || exit
 APP_NAME="hazel"
 APP_BASE_NAME=${0##*/}
-CHARTED_DISTRIBUTION=${HAZEL_DISTRIBUTION_TYPE:-local}
+HAZEL_DISTRIBUTION_TYPE=${HAZEL_DISTRIBUTION_TYPE:-local}
+HAZEL_DEBUG=${HAZEL_DEBUG:-0}
 RESOLVED_JAVA_OPTS=(
   "-XX:+HeapDumpOnOutOfMemoryError"
   "-XX:+ExitOnOutOfMemoryError"
@@ -66,7 +67,9 @@ if [ ! -z "${HAZEL_JAVA_OPTS:-}" ]; then
 fi
 
 export JAVA_OPTS=$(join ' ' "${RESOLVED_JAVA_OPTS[@]}")
-echo "[preinit] Resolved Java Options ==> $JAVA_OPTS"
+if [[ "$HAZEL_DEBUG" =~ "^(yes|true|false|si*|1)$" ]]; then
+  echo "[DEBUG :: preinit] Resolved Java Options ==> $JAVA_OPTS"
+fi
 
 # Determine the Java command to use.
 if [ -n "${JAVA_HOME:-}" ]; then
@@ -97,7 +100,7 @@ CHARTED_CLASSPATH="$APP_HOME/../lib/*"
 exec \
   "$JAVA_EXEC" \
   $JAVA_OPTS \
-  -Dorg.noelware.hazel.distribution.type="$CHARTED_DISTRIBUTION" \
+  -Dorg.noelware.hazel.distribution.type="$HAZEL_DISTRIBUTION_TYPE" \
   -cp "$CHARTED_CLASSPATH" \
   org.noelware.hazel.cli.CliMainKt \
   "$@"
