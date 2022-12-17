@@ -1,6 +1,6 @@
 /*
- * 🪶 hazel: Minimal, simple, and open source content delivery network made in Kotlin
- * Copyright 2022 Noel <cutie@floofy.dev>
+ * 🪶 Hazel: Minimal, and fast HTTP proxy to host files from any cloud storage provider.
+ * Copyright 2022-2023 Noelware <team@noelware.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

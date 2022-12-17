@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+~ 📦 charted-server: Free, open source, and reliable Helm Chart registry made in Kotlin.
+~ Copyright 2022 Noelware <team@noelware.org>
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~    http://www.apache.org/licenses/LICENSE-2.0
+~
+~  Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+
+<configuration debug="false" packagingData="true">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+    <conversionRule conversionWord="logLevel" converterClass="org.noelware.hazel.modules.logging.composites.LogLevelColorComposite" />
+    <conversionRule conversionWord="threadName" converterClass="org.noelware.hazel.modules.logging.composites.ThreadNameComposite" />
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <if condition='isDefined("hazel.console.json")'>
+            <then>
+                <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                    <layout class="org.noelware.hazel.modules.logging.json.ClassicJsonLayout" />
+                </encoder>
+            </then>
+            <else>
+                <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                    <pattern>[%d{yyyy-MM-dd @ HH:mm:ss.SSS, +10}] %boldCyan([%-38threadName]) %logLevel([%level]) [%logger{36}:%line] :: %msg%n</pattern>
+                    <charset>utf-8</charset>
+                </encoder>
+            </else>
+        </if>
+    </appender>
+
+    <if condition='isDefined("hazel.appenders")'>
+        <then>
+            <if condition='property("hazel.appenders").contains("sentry")'>
+                <appender name="Sentry" class="io.sentry.logback.SentryAppender">
+                    <options>
+                        <dsn>${hazel.sentry.dsn}</dsn>
+                    </options>
+                </appender>
+            </if>
+
+            <if condition='property("hazel.appenders").contains("logstash")'>
+                <appender name="Logstash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                    <destination>${hazel.logstash.endpoint}</destination>
+                    <keepAliveDuration>5 minutes</keepAliveDuration>
+                    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                        <providers>
+                            <timestamp />
+                            <message />
+                            <loggerName />
+                            <threadName />
+                            <logLevel />
+                            <callerData />
+                            <stackTrace />
+                            <contextName />
+                            <mdc />
+                            <tags />
+                            <logstashMarkers />
+                            <throwableClassName />
+                            <throwableMessage />
+                            <throwableRootCauseClassName />
+                            <throwableRootCauseMessage />
+                        </providers>
+                        <customFields>{"product":"charted-server","vendor":"Noelware"}</customFields>
+                    </encoder>
+                </appender>
+            </if>
+
+            <if condition='isNull("hazel.log.level")'>
+                <then>
+                    <if condition='property("hazel.appenders").contains("sentry")'>
+                        <root level="error">
+                            <appender-ref ref="Sentry" />
+                        </root>
+                    </if>
+
+                    <root level="info">
+                        <appender-ref ref="Console" />
+                        <if condition='property("hazel.appenders").contains("logstash")'>
+                            <then>
+                                <appender-ref ref="Logstash" />
+                            </then>
+                        </if>
+                    </root>
+                </then>
+                <else>
+                    <if condition='property("hazel.appenders").contains("sentry")'>
+                        <root level="error">
+                            <appender-ref ref="Sentry" />
+                        </root>
+                    </if>
+
+                    <root level="${hazel.log.level}">
+                        <appender-ref ref="Console" />
+                        <if condition='property("hazel.appenders").contains("logstash")'>
+                            <then>
+                                <appender-ref ref="Logstash" />
+                            </then>
+                        </if>
+                    </root>
+                </else>
+            </if>
+        </then>
+        <else>
+            <if condition='isNull("hazel.log.level")'>
+                <then>
+                    <root level="info">
+                        <appender-ref ref="Console" />
+                    </root>
+                </then>
+                <else>
+                    <root level="${hazel.log.level}">
+                        <appender-ref ref="Console" />
+                    </root>
+                </else>
+            </if>
+        </else>
+    </if>
+</configuration>
