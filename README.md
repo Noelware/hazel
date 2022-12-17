@@ -1,13 +1,12 @@
 # 🪶 Hazel
-> *Minimal, and fast HTTP proxy to host files from any cloud storage provider. Made in Kotlin*
+> *Minimal, and fast HTTP proxy to host files from any cloud storage provider~!*
 >
 > <kbd>[v2.0-beta](https://github.com/Noelware/hazel/releases/2.0.0-beta)</kbd>
 
 **hazel** is Noelware's HTTP proxy microservices to proxy any artifacts from our Amazon S3 storage bucket to the web easily, reliability,
 and fast.
 
-**hazel** is now a graduated Noelware project, it used to be owned by [Noel](https://floofy.dev). **hazel** supports providers
-from [Remi](https://github.com/Noelware/remi).
+**hazel** is now a graduated Noelware project, it used to be owned by [Noel](https://floofy.dev).
 
 ## Contributing
 Thanks for considering contributing to **hazel**! Before you boop your heart out on your keyboard ✧ ─=≡Σ((( つ•̀ω•́)つ, we recommend you to do the following:
