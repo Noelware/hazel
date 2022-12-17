@@ -38,14 +38,14 @@ RUN apk update && apk add --no-cache bash tini libc6-compat gcompat
 WORKDIR /app/noelware/hazel
 
 ENV JAVA_HOME=/opt/openjdk/java
-COPY --from=gradle-build /build/server/cli/build/install/charted/config /app/noelware/hazel/config
-COPY --from=gradle-build /build/server/cli/build/install/charted/lib    /app/noelware/hazel/lib
-COPY --from=gradle-build /build/server/cli/build/install/charted/bin    /app/noelware/hazel/bin
-COPY                     distribution/docker/scripts/linux              /app/noelware/hazel/scripts
-COPY --from=jdk-runtime  /runtime                                       /opt/openjdk/java
+COPY --from=gradle-build /build/server/cli/build/install/hazel/config /app/noelware/hazel/config
+COPY --from=gradle-build /build/server/cli/build/install/hazel/lib    /app/noelware/hazel/lib
+COPY --from=gradle-build /build/server/cli/build/install/hazel/bin    /app/noelware/hazel/bin
+COPY                     distribution/docker/scripts/linux            /app/noelware/hazel/scripts
+COPY --from=jdk-runtime  /runtime                                     /opt/openjdk/java
 
 # Remove the PowerShell script (since it's useless on *UNIX)
-RUN rm /app/noelware/hazel/bin/charted.ps1
+RUN rm /app/noelware/hazel/bin/hazel.ps1
 
 ENV HAZEL_DISTRIBUTION_TYPE=docker
 EXPOSE 3651
@@ -56,7 +56,7 @@ RUN addgroup -g 1001 noelware && \
     adduser -DSH -u 1001 -G noelware noelware && \
     chown -R noelware:noelware /app/noelware/hazel && \
     chown -R noelware:noelware /var/lib/noelware/hazel/data && \
-    chmod +x /app/noelware/hazel/bin/charted /app/noelware/hazel/scripts/docker-entrypoint.sh
+    chmod +x /app/noelware/hazel/bin/hazel /app/noelware/hazel/scripts/docker-entrypoint.sh
 
 # Create a symbolic link so you can just run `hazel` without specifying
 # the full path.
