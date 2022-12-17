@@ -27,13 +27,13 @@ import org.noelware.remi.support.filesystem.FilesystemStorageService
 import org.noelware.remi.support.gcs.GoogleCloudStorageService
 import org.noelware.remi.support.s3.AmazonS3StorageService
 
-class DefaultStorageDriver(private val config: StorageConfig): StorageDriver {
-    private val storage: StorageService<*>
+class DefaultStorageDriver(config: StorageConfig): StorageDriver {
+    override val service: StorageService<*>
     private val log by logging<DefaultStorageDriver>()
 
     init {
         log.info("Initializing storage driver...")
-        storage = when {
+        service = when {
             config.filesystem != null -> FilesystemStorageService(config.filesystem!!.toRemiConfig())
             config.azure != null -> AzureBlobStorageService(config.azure!!.toRemiConfig())
             config.gcs != null -> GoogleCloudStorageService(config.gcs!!.toRemiConfig())
@@ -41,11 +41,11 @@ class DefaultStorageDriver(private val config: StorageConfig): StorageDriver {
             else -> throw IllegalStateException("Unable to determine what storage driver to use")
         }
 
-        storage.init()
+        service.init()
     }
 
-    override fun upload(builder: UploadRequest.Builder.() -> Unit) = storage.upload(UploadRequest.builder().apply(builder).build())
-    override fun delete(path: String): Boolean = storage.delete(path)
-    override fun exists(path: String): Boolean = storage.exists(path)
-    override fun blob(path: String): Blob? = storage.blob(path)
+    override fun upload(builder: UploadRequest.Builder.() -> Unit) = service.upload(UploadRequest.builder().apply(builder).build())
+    override fun delete(path: String): Boolean = service.delete(path)
+    override fun exists(path: String): Boolean = service.exists(path)
+    override fun blob(path: String): Blob? = service.blob(path)
 }

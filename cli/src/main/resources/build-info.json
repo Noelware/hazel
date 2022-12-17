@@ -1,6 +1,6 @@
 {
   "is_nightly_build": "${is_nightly_build}",
-  "commit_hash": "${commit_hash}",
+  "commit_hash": "${commit_sha}",
   "build_date": "${build_date}",
   "version": "${version}"
 }

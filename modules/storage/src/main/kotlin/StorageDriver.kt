@@ -18,9 +18,12 @@
 package org.noelware.hazel.modules.storage
 
 import org.noelware.remi.core.Blob
+import org.noelware.remi.core.StorageService
 import org.noelware.remi.core.UploadRequest
 
 interface StorageDriver {
+    val service: StorageService<*>
+
     /**
      * Uploads a file to the given storage provider with the given [upload request][UploadRequest]. If the
      * contents exceed over >=50MB, then the storage provider will attempt to do a multipart request on some implementations.

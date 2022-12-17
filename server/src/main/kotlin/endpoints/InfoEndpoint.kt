@@ -16,3 +16,39 @@
  */
 
 package org.noelware.hazel.server.endpoints
+
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import org.noelware.hazel.HazelInfo
+import org.noelware.hazel.data.ApiResponse
+import org.noelware.ktor.endpoints.AbstractEndpoint
+import org.noelware.ktor.endpoints.Get
+
+@Serializable
+private data class InfoResponse(
+    val version: String,
+
+    @SerialName("build_date")
+    val buildDate: Instant,
+
+    @SerialName("commit_hash")
+    val commitHash: String
+)
+
+class InfoEndpoint: AbstractEndpoint("/info") {
+    @Get
+    suspend fun main(call: ApplicationCall) = call.respond(
+        HttpStatusCode.OK,
+        ApiResponse.ok(
+            InfoResponse(
+                HazelInfo.version,
+                HazelInfo.buildDate,
+                HazelInfo.commitHash
+            )
+        )
+    )
+}

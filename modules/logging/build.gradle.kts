@@ -29,6 +29,8 @@ version = "$VERSION"
 
 repositories {
     mavenCentral()
+    noelware()
+    noel()
 }
 
 dependencies {

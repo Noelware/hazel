@@ -16,3 +16,12 @@
  */
 
 package org.noelware.hazel.server.endpoints
+
+import org.koin.dsl.bind
+import org.koin.dsl.module
+import org.noelware.ktor.endpoints.AbstractEndpoint
+
+val endpointsModule = module {
+    single { MainEndpoint(get()) } bind AbstractEndpoint::class
+    single { InfoEndpoint() } bind AbstractEndpoint::class
+}

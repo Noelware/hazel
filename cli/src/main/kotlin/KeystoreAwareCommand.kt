@@ -16,3 +16,21 @@
  */
 
 package org.noelware.hazel.cli
+
+import com.github.ajalt.clikt.core.CliktCommand
+import kotlinx.serialization.json.Json
+import org.noelware.hazel.configuration.kotlin.dsl.auth.AuthStrategyType
+import org.noelware.hazel.configuration.kotlin.dsl.auth.HazelAuthenticationStrategy
+import org.noelware.hazel.modules.authentication.keystore.HazelKeystoreAuthentication
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
+
+abstract class KeystoreAwareCommand(name: String, help: String = ""): CliktCommand(help, name) {
+    fun getKeystoreAuthenticator(config: HazelAuthenticationStrategy): HazelKeystoreAuthentication? {
+        if (config.authStrategy != AuthStrategyType.KEYSTORE) return null
+        return HazelKeystoreAuthentication(
+            config as HazelAuthenticationStrategy.Keystore,
+            Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8(),
+            Json
+        ).also { it.init() }
+    }
+}

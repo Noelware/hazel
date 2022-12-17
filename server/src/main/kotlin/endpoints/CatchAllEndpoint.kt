@@ -16,3 +16,31 @@
  */
 
 package org.noelware.hazel.server.endpoints
+
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.ByteBufferPool
+import org.noelware.hazel.HazelScope
+import java.io.ByteArrayInputStream
+
+private fun createKtorContent(
+    bytes: ByteArray,
+    contentType: ContentType,
+    contentLength: Long = bytes.size.toLong(),
+    status: HttpStatusCode = HttpStatusCode.OK
+): OutgoingContent.ReadChannelContent {
+    check(contentLength != 0L) { "Content-Length can't be 0" }
+    return object: OutgoingContent.ReadChannelContent() {
+        override val contentType: ContentType = contentType
+        override val contentLength: Long = contentLength
+        override val status: HttpStatusCode = status
+        override fun readFrom(): ByteReadChannel = ByteArrayInputStream(bytes).toByteReadChannel(
+            ByteBufferPool(4092, 8192),
+            HazelScope.coroutineContext
+        )
+    }
+}

@@ -40,7 +40,7 @@ enum class AuthStrategyType {
     LDAP;
 }
 
-@Serializable
+@Serializable(with = HazelAuthenticationStrategy.Serializer::class)
 sealed class HazelAuthenticationStrategy(val authStrategy: AuthStrategyType) {
     @Suppress("UNUSED")
     constructor(): this(AuthStrategyType.DISABLED)

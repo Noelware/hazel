@@ -15,25 +15,22 @@
  * limitations under the License.
  */
 
-package org.noelware.hazel.server
+package org.noelware.hazel.server.bootstrap
 
-import dev.floofy.utils.slf4j.logging
-import org.noelware.hazel.HazelInfo
-import org.noelware.hazel.server.bootstrap.BootstrapPhase
 import java.io.File
 
-object Bootstrap {
-    private val log by logging<Bootstrap>()
+/**
+ * Represents a phase in the server's bootstrapping. This will plug into the [org.noelware.hazel.server.Bootstrap.run] call
+ * and does pre-initialization.
+ */
+abstract class BootstrapPhase {
+    abstract fun bootstrap(configPath: File)
 
-    fun run(configPath: File) {
-        Thread.currentThread().name = "Hazel-BootstrapThread"
-        if (HazelInfo.isNightlyBuild) {
-            log.warn("This build of Hazel is in the nightly channel! Be aware that bugs might occur.")
-        }
-
-        for (phase in BootstrapPhase.PHASES) {
-            log.debug("Running bootstrap phase [$phase]")
-            phase.bootstrap(configPath)
-        }
+    companion object {
+        internal val PHASES: List<BootstrapPhase> = listOf(
+            PreInitPhase,
+            ConfigureModulesPhase,
+            RunServerPhase
+        )
     }
 }

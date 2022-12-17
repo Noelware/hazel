@@ -640,3 +640,6 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 config.yml
+server/src/main/resources/config/logging.properties
+!cli/distribution/bin/
+.hazel/

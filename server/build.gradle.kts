@@ -57,4 +57,10 @@ dependencies {
     implementation(project(":modules:storage"))
     implementation(project(":modules:logging"))
     implementation(project(":modules:config"))
+
+    // Kaml
+    implementation(libs.kaml)
+
+    // Koin
+    implementation(libs.koin)
 }

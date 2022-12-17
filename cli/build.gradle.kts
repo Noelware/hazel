@@ -26,6 +26,10 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":modules:authentication:keystore"))
+    implementation(project(":modules:authentication"))
+    implementation(libs.spring.security.crypto)
+    implementation(project(":server"))
     implementation(libs.mordant)
     implementation(libs.clikt)
 }

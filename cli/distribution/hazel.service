@@ -1,0 +1,14 @@
+[Unit]
+Description=Minimal, and fast HTTP proxy to host files from any cloud storage provider.
+Documentation=https://noelware.org/hazel
+After=network-online.target
+
+[Service]
+Type=notify
+TimeoutStartSec=0
+ExecStart=/etc/noelware/hazel/bin/hazel server --config=/etc/noelware/hazel/config/charted.yml
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
