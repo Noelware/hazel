@@ -14,7 +14,7 @@
 # limitations under the License.
 
 [versions]
-spring-security-crypto = "6.0.0"
+spring-security-crypto = "6.0.1"
 kotlinx-serialization = "1.4.1"
 apache-commons-lang3 = "3.12.0"
 kotlinx-coroutines = "1.6.4"
