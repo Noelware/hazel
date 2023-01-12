@@ -48,8 +48,8 @@ COPY --from=jdk-runtime  /runtime                                     /opt/openj
 # Remove the PowerShell script (since it's useless on *UNIX)
 RUN rm /app/noelware/hazel/bin/hazel.ps1
 
-ENV CHARTED_DISTRIBUTION_TYPE=docker
-EXPOSE 3651
+ENV HAZEL_DISTRIBUTION_TYPE=docker
+EXPOSE 8901
 VOLUME /var/lib/noelware/hazel/data
 
 RUN mkdir -p /var/lib/noelware/hazel/data

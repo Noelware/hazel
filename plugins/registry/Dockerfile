@@ -26,42 +26,35 @@ RUN apk update && \
 
 FROM --platform=$BUILDPLATFORM eclipse-temurin:17.0.5_8-jdk-alpine AS gradle-build
 
-RUN apk update && apk add --no-cache git ca-certificates gcompat libc6-compat curl
-WORKDIR /build/server
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt install -y git ca-certificates curl
+WORKDIR /build/registry
 
 COPY . .
-RUN chmod +x ./gradlew && ./gradlew :cli:installDist --no-daemon --stacktrace
+RUN chmod +x ./gradlew && ./gradlew :plugins:registry:installDist --no-daemon --stacktrace
 
 FROM --platform=$BUILDPLATFORM alpine:3.17
 
 RUN apk update && apk add --no-cache bash tini libc6-compat gcompat
-WORKDIR /app/noelware/hazel
+WORKDIR /app/noelware/hazel/plugins/registry
 
 ENV JAVA_HOME=/opt/openjdk/java
-COPY --from=gradle-build /build/server/cli/build/install/hazel/config /app/noelware/hazel/config
-COPY --from=gradle-build /build/server/cli/build/install/hazel/lib    /app/noelware/hazel/lib
-COPY --from=gradle-build /build/server/cli/build/install/hazel/bin    /app/noelware/hazel/bin
-COPY                     distribution/docker/scripts/linux            /app/noelware/hazel/scripts
-COPY --from=jdk-runtime  /runtime                                     /opt/openjdk/java
-
-# Remove the PowerShell script (since it's useless on *UNIX)
-RUN rm /app/noelware/hazel/bin/hazel.ps1
+COPY --from=gradle-build /build/registry/cli/build/install/hazel/config /app/noelware/hazel/plugins/registry/config
+COPY --from=gradle-build /build/registry/cli/build/install/hazel/lib    /app/noelware/hazel/plugins/registry/lib
+COPY --from=gradle-build /build/registry/cli/build/install/hazel/bin    /app/noelware/hazel/plugins/registry/bin
+COPY                     distribution/docker/scripts/linux              /app/noelware/hazel/plugins/registry/scripts
+COPY --from=jdk-runtime  /runtime                                       /opt/openjdk/java
 
 ENV HAZEL_DISTRIBUTION_TYPE=docker
-EXPOSE 8901
+EXPOSE 18921
 VOLUME /var/lib/noelware/hazel/data
 
 RUN mkdir -p /var/lib/noelware/hazel/data
 RUN addgroup -g 1001 noelware && \
     adduser -DSH -u 1001 -G noelware noelware && \
-    chown -R noelware:noelware /app/noelware/hazel && \
-    chown -R noelware:noelware /var/lib/noelware/hazel/data && \
-    chmod +x /app/noelware/hazel/bin/hazel /app/noelware/hazel/scripts/docker-entrypoint.sh
-
-# Create a symbolic link so you can just run `hazel` without specifying
-# the full path.
-RUN ln -s /app/noelware/hazel/bin/hazel /usr/bin/hazel
+    chown -R noelware:noelware /app/noelware/hazel/plugins/registry && \
+    chmod +x /app/noelware/hazel/bin/hazel /app/noelware/hazel/plugins/registry/scripts/docker-entrypoint.sh
 
 USER noelware
 ENTRYPOINT ["/app/noelware/hazel/scripts/docker-entrypoint.sh"]
-CMD ["/app/noelware/hazel/bin/hazel", "server"]
+CMD ["/app/noelware/hazel/plugins/registry/bin/plugins-registry"]

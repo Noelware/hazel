@@ -14,3 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import org.noelware.hazel.gradle.*
+
+plugins {
+    application
+}
+
+group = "org.noelware.charted"
+version = "$VERSION"
+description = "\uD83E\uDEB6 Minimal, and fast HTTP proxy to host files from any cloud storage provider."
+
+tasks {
+    wrapper {
+        distributionType = Wrapper.DistributionType.ALL
+    }
+}
