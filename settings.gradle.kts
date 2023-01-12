@@ -43,10 +43,15 @@ include(
     ":modules:logging",
     ":modules:metrics",
     ":modules:storage",
+    ":plugins",
+    ":plugins:loader",
+    ":plugins:registry",
+    ":plugins:webp-support",
     ":server"
 )
 
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     versionCatalogs {
         create("libs") {
             from(files("./gradle/build.versions.toml"))
