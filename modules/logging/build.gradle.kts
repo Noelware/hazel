@@ -35,7 +35,7 @@ repositories {
 
 dependencies {
     // jetbrains annotations
-    implementation("org.jetbrains:annotations:24.0.0")
+    implementation("org.jetbrains:annotations:24.0.1")
 
     // common stuff
     implementation(project(":common"))
