@@ -37,7 +37,7 @@ grpc = "1.54.1"
 koin = "3.4.0"
 kaml = "0.53.0"
 remi = "0.5.4-beta"
-ktor = "2.2.4"
+ktor = "2.3.0"
 
 [libraries]
 # kotlinx libraries
