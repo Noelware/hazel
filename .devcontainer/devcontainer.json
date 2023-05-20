@@ -1,0 +1,12 @@
+{
+    "name": "hazel",
+    "containerUser": "noel",
+    "remoteUser": "noel",
+    "image": "ghcr.io/auguwu/coder-images/rust",
+    "workspaceFolder": "/workspaces/hazel",
+    "features": {
+        "ghcr.io/devcontainers/features/sshd:1": {
+            "version": "latest"
+        }
+    }
+}
