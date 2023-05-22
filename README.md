@@ -48,7 +48,7 @@ Now, if you wish to use the local filesystem for Hazel, it is recommended to cre
 Now, we can pull the image from [Noelware's Container Registry](https://cr.noelware.cloud):
 
 ```shell
-$ docker pull cr.noelware.cloud/charted/server:latest
+$ docker pull cr.noelware.cloud/hazel/hazel:latest
 ```
 
 Now, we can run the container!
@@ -59,7 +59,7 @@ Now, we can run the container!
 $ docker run -d -p 8989:8989 --name hazel \
     -v hazel:/var/lib/noelware/hazel      \
     -e HAZEL_SERVER_NAME=my-hazel-instance \
-    cr.noelware.cloud/charted/server:latest
+    cr.noelware.cloud/hazel/hazel:latest
 ```
 
 ### Helm

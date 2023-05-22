@@ -24,7 +24,6 @@ pipelines:
       versions:
         latestVersionKey: current
         masterVersionKey: master
-
       mdx: false
       files:
         - '{{ .Noeldoc.Cwd }}/src/**/*.md'

@@ -3,7 +3,15 @@
     "containerUser": "noel",
     "remoteUser": "noel",
     "image": "ghcr.io/auguwu/coder-images/rust",
-    "workspaceFolder": "/workspaces/hazel",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "tamasfe.even-better-toml",
+                "rust-lang.rust-analyzer"
+            ]
+        }
+    },
     "features": {
         "ghcr.io/devcontainers/features/sshd:1": {
             "version": "latest"

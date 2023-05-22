@@ -13,6 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main() {
-    println!("Hello, world!");
-}
+#[macro_use]
+extern crate tracing;
+
+#[macro_use]
+extern crate lazy_static;
+
+pub mod app;
