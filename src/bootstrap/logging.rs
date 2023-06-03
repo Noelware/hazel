@@ -13,11 +13,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{config::Config, remi::StorageServiceDelegate};
+use crate::{config::Config, logging::HazelLayer};
+use eyre::Result;
+use tracing::metadata::LevelFilter;
+use tracing_subscriber::prelude::*;
 
-/// Represents the application state of hazel.
+use super::BootstrapPhase;
+
 #[derive(Debug, Clone)]
-pub struct Hazel {
-    pub storage: StorageServiceDelegate,
-    pub config: &'static Config,
+pub struct SetupLoggingPhase;
+
+#[async_trait]
+impl BootstrapPhase for SetupLoggingPhase {
+    async fn bootstrap(&self, config: &Config) -> Result<()> {
+        let registry = tracing_subscriber::registry()
+            .with(HazelLayer::default().with_filter(LevelFilter::from(config.logging.level)));
+
+        registry.init();
+        Ok(())
+    }
+
+    fn try_clone(&self) -> Result<Box<dyn BootstrapPhase>> {
+        Ok(Box::new(self.clone()))
+    }
 }

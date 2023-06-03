@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http:#www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,7 @@ name: CI
 on:
     workflow_dispatch: {}
     pull_request:
-        types: [synchronize]
+        types: [opened, synchronize]
         branches:
             - 'issue/gh-**'
             - 'feat/**'
@@ -67,9 +67,27 @@ jobs:
 
             - name: Pull dependencies
               run: cargo build
+    clippy:
+        name: Clippy (${{matrix.rust-version}})
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                rust-version: [stable, nightly]
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
 
-            - name: Lint with Clippy!
+            - name: Setup Rust toolchain
+              uses: dtolnay/rust-toolchain@master
+              with:
+                toolchain: ${{matrix.rust-version}}
+                components: clippy, rustfmt
+
+            - name: Setup Rust cache
+              uses: Swatinem/rust-cache@v2
+
+            - name: Clippy!
               uses: auguwu/clippy-action@master
-              if: matrix.runner == 'ubuntu-latest' && matrix.rust-version == 'stable'
               with:
                 all-features: true
+                token: ${{secrets.GITHUB_TOKEN}}

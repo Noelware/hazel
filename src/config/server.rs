@@ -13,11 +13,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{config::Config, remi::StorageServiceDelegate};
+use crate::config;
 
-/// Represents the application state of hazel.
-#[derive(Debug, Clone)]
-pub struct Hazel {
-    pub storage: StorageServiceDelegate,
-    pub config: &'static Config,
+config!(ServerConfig {
+    #[serde(default = "host")]
+    pub host: String => {
+        default_value: host();
+        to_env: ::std::env::var("HAZEL_SERVER_HOST").unwrap_or(host());
+    };
+
+    #[serde(default = "port")]
+    pub port: i16 => {
+        default_value: port();
+        to_env: ::std::env::var("HAZEL_SERVER_PORT")
+            .map(|f| f.parse::<i16>().expect(format!("unable to parse '{f}' into i16").as_str()))
+            .unwrap_or(port());
+    };
+});
+
+fn host() -> String {
+    "0.0.0.0".into()
+}
+
+fn port() -> i16 {
+    3939
 }

@@ -13,6 +13,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main() {
-    println!("Hello, world!");
+use std::net::SocketAddr;
+
+use axum::Server;
+use eyre::Result;
+use hazel::{
+    app::Hazel, bootstrap::bootstrap, config::Config, remi::StorageServiceDelegate, server, COMMIT_HASH, VERSION,
+};
+use remi_core::StorageService;
+use tracing::*;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Load up environment variables from external .env file!
+    dotenv::dotenv().unwrap_or_default();
+
+    // Load up the Hazel configuration
+    Config::load()?;
+
+    let config = Config::get();
+    bootstrap(config).await?;
+
+    info!(version = VERSION, commit = COMMIT_HASH, "starting hazel...");
+    let state = Hazel {
+        storage: StorageServiceDelegate::default(),
+        config,
+    };
+
+    state.storage.init().await?;
+
+    let router = server::router(state);
+    let addr_string = format!("{}:{}", config.server.host, config.server.port);
+    let addr = addr_string.parse::<SocketAddr>()?;
+
+    info!(addr = addr_string, "hazel is now listening");
+    Server::bind(&addr).serve(router.into_make_service()).await?;
+    Ok(())
 }

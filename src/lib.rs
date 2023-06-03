@@ -13,10 +13,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use regex::Regex;
+
 #[macro_use]
 extern crate tracing;
 
 #[macro_use]
 extern crate lazy_static;
 
+#[macro_use]
+extern crate eyre;
+
+#[macro_use]
+extern crate async_trait;
+
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const COMMIT_HASH: &str = env!("HAZEL_COMMIT_HASH");
+pub const BUILD_DATE: &str = env!("HAZEL_BUILD_DATE");
+
 pub mod app;
+pub mod bootstrap;
+pub mod config;
+pub mod logging;
+pub mod remi;
+pub mod server;
+
+lazy_static! {
+    pub static ref BOOL_REGEX: Regex = Regex::new(r#"^(yes|true|si*|1|enable|enabled)$"#).unwrap();
+}

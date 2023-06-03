@@ -13,11 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{config::Config, remi::StorageServiceDelegate};
+use eyre::Result;
 
-/// Represents the application state of hazel.
-#[derive(Debug, Clone)]
-pub struct Hazel {
-    pub storage: StorageServiceDelegate,
-    pub config: &'static Config,
+/// Trait to implement a "from_env() -> T" function to load
+/// the object from the system environment variables.
+pub trait FromEnv<T> {
+    fn from_env() -> T;
+}
+
+/// Trait that implements a "try_from_env() -> Result<T>" to load up
+/// a object from the system environment variables which return a Result
+/// variant.
+pub trait TryFromEnv<T> {
+    fn try_from_env() -> Result<T>;
 }
