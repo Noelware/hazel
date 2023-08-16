@@ -6,10 +6,13 @@
 The following domains point to hazel directly:
 
 - [artifacts.noelware.cloud](https://artifacts.noelware.cloud)
+- [artifacts.floofy.dev](https://artifacts.floofy.dev)
 - [cdn.noelware.cloud](https://cdn.noelware.cloud)
+- [maven.noelware.org](https://maven.noelware.org)
+- [maven.floofy.dev](https://maven.floofy.dev)
 - [cdn.floofy.dev](https://cdn.floofy.dev)
 
-**hazel** is a graduated Noelware project, it was originally owned and created by [Noel](https://floofy.dev), but still maintained by him!
+**hazel** is a graduated Noelware project, it was originally owned and created by [Noel](https://floofy.dev), but is still maintained by him!
 
 ## Installation
 ### Docker
@@ -57,7 +60,6 @@ Now, we can run the container!
 # Using -v is an optional step if you're not using the local
 # filesystem.
 $ docker run -d -p 8989:8989 --name hazel \
-    -v hazel:/var/lib/noelware/hazel      \
     -e HAZEL_SERVER_NAME=my-hazel-instance \
     cr.noelware.cloud/hazel/hazel:latest
 ```
@@ -65,14 +67,12 @@ $ docker run -d -p 8989:8989 --name hazel \
 ### Helm
 Hazel does provide a Helm distribution, but it is not available as of yet!
 
-### Tarball/Zip
-Hazel does provide a standard archive to use, but no documentation is available yet.
-
 ## Configuration
 Hazel uses a standard YAML configuration file that can be used to configure the proxy, as **Hazel** is convention over configuration, it will proxy over the local filesystem under `/var/lib/noelware/hazel` on Linux or `$ROOT/.data` on other operating systems as there is no convention yet.
 
-Hazel supports the local filesystem, Amazon S3, and [MongoDB Gridfs](https://www.mongodb.com/docs/manual/core/gridfs) as Hazel is powered by the [remi-rs](https://github.com/Noelware/remi-rs) library.
+Hazel supports the local filesystem and Amazon S3 as Hazel is powered by the [remi-rs](https://github.com/Noelware/remi-rs) library.
 
+<!--
 ### Secure Strings
 To prevent leaking sensitive data in configuration files, you can embed environment variables to create a secure string, which will allow you to use the `${}` syntax to load up an environment variable and be used by that, like in Bash.
 
@@ -81,6 +81,7 @@ sentry_dsn: ${HAZEL_SENTRY_DSN:-}
 ```
 
 This will look-up the `HAZEL_SENTRY_DSN` environment variable, if it exists, the result will be the contents of the environment variable, otherwise it'll return "null" (or anything after `:-`).
+-->
 
 ## Contributing
 Thanks for considering contributing to **hazel**! Before you boop your heart out on your keyboard ✧ ─=≡Σ((( つ•̀ω•́)つ, we recommend you to do the following:
