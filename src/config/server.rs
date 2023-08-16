@@ -26,7 +26,7 @@ config!(ServerConfig {
     pub port: i16 => {
         default_value: port();
         to_env: ::std::env::var("HAZEL_SERVER_PORT")
-            .map(|f| f.parse::<i16>().expect(format!("unable to parse '{f}' into i16").as_str()))
+            .map(|f| f.parse::<i16>().unwrap_or_else(|_| panic!("unable to parse {f} as i16.")))
             .unwrap_or(port());
     };
 });
