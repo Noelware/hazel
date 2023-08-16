@@ -13,9 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{ffi::OsStr, process::Command, time::SystemTime};
-
 use chrono::{DateTime, Utc};
+use std::{ffi::OsStr, process::Command, time::SystemTime};
 
 /// execute returns the standard output of the command specified.
 fn execute<T: Into<String> + AsRef<OsStr>>(

@@ -13,7 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-max_width = 120
-newline_style = "Unix"
-edition = "2021"
-tab_spaces = 4
+repository: noelware/hazel
+registry: https://charts.noelware.org/api

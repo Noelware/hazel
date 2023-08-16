@@ -24,15 +24,11 @@ extern crate lazy_static;
 #[macro_use]
 extern crate eyre;
 
-#[macro_use]
-extern crate async_trait;
-
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const COMMIT_HASH: &str = env!("HAZEL_COMMIT_HASH");
 pub const BUILD_DATE: &str = env!("HAZEL_BUILD_DATE");
 
 pub mod app;
-pub mod bootstrap;
 pub mod config;
 pub mod logging;
 pub mod remi;

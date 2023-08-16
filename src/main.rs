@@ -13,15 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::SocketAddr;
+use std::{borrow::Cow, net::SocketAddr, str::FromStr};
 
 use axum::Server;
 use eyre::Result;
 use hazel::{
-    app::Hazel, bootstrap::bootstrap, config::Config, remi::StorageServiceDelegate, server, COMMIT_HASH, VERSION,
+    app::Hazel, config::Config, logging::HazelLayer, remi::StorageServiceDelegate, server, COMMIT_HASH, VERSION,
 };
 use remi_core::StorageService;
-use tracing::*;
+use tokio::{select, signal};
+use tracing::{metadata::LevelFilter, *};
+use tracing_subscriber::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -32,7 +34,32 @@ async fn main() -> Result<()> {
     Config::load()?;
 
     let config = Config::get();
-    bootstrap(config).await?;
+    tracing_subscriber::registry()
+        .with(HazelLayer::default().with_filter(LevelFilter::from_level(config.logging.level)))
+        .with(config.sentry_dsn.as_ref().map(|_| sentry_tracing::layer()))
+        .init();
+
+    let sentry_guard = if let Some(dsn) = config.sentry_dsn.clone() {
+        debug!("initializing Sentry");
+
+        let service_name = match &config.service_name {
+            Some(ref name) => Cow::Owned(name.to_string()),
+            None => Cow::Borrowed("hazel"),
+        };
+
+        Some(sentry::init(sentry::ClientOptions {
+            dsn: Some(sentry::types::Dsn::from_str(dsn.as_str())?),
+            release: Some(Cow::Owned(format!("v{VERSION}+{COMMIT_HASH}"))),
+            traces_sample_rate: 1.0,
+            enable_profiling: true,
+            attach_stacktrace: true,
+            server_name: Some(service_name),
+
+            ..Default::default()
+        }))
+    } else {
+        None
+    };
 
     info!(version = VERSION, commit = COMMIT_HASH, "starting hazel...");
     let state = Hazel {
@@ -46,7 +73,39 @@ async fn main() -> Result<()> {
     let addr_string = format!("{}:{}", config.server.host, config.server.port);
     let addr = addr_string.parse::<SocketAddr>()?;
 
-    info!(addr = addr_string, "hazel is now listening");
-    Server::bind(&addr).serve(router.into_make_service()).await?;
+    info!(%addr, "hazel is now listening on");
+    Server::bind(&addr)
+        .serve(router.into_make_service())
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
+
+    if let Some(guard) = sentry_guard {
+        drop(guard);
+    }
+
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c().await.expect("unable to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("unable to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    select! {
+        _ = ctrl_c => {}
+        _ = terminate => {}
+    }
+
+    warn!("received Ctrl+C or termination signal!");
 }

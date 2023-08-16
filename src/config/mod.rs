@@ -178,9 +178,7 @@ impl Config {
             }
 
             None => {
-                eprintln!("[hazel::preinit] Unable to load configuration file from default locations, using system environment variables!");
                 CONFIG.set(Config::from_env()).unwrap();
-
                 Ok(())
             }
         }

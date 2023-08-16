@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-max_width = 120
-newline_style = "Unix"
-edition = "2021"
-tab_spaces = 4
+# This is the default configuration for Hazel. You can edit this file
+# and it'll be reflected once you restart the Hazel container.
+
+storage:
+  filesystem:
+    directory: /var/lib/noelware/hazel/data

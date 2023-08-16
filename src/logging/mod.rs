@@ -107,7 +107,7 @@ where
 
                     spans.push(json!({
                         "target": span.metadata().target(),
-                        "level": format!("{:?}", span.metadata().level()),
+                        "level": span.metadata().level().as_str().to_lowercase(),
                         "name": span.metadata().name(),
                         "fields": data,
                         "meta": json!({

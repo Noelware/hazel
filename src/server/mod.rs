@@ -28,7 +28,7 @@ use remi_core::{Blob, StorageService};
 use res::*;
 use sentry::integrations::tower::SentryHttpLayer;
 use sentry_tower::NewSentryLayer;
-use serde_json::{json, Value};
+use serde_json::json;
 use tower::ServiceBuilder;
 
 const APPLICATION_OCTET_STREAM: &str = "application/octet-stream";
@@ -42,30 +42,30 @@ pub fn router(state: Hazel) -> Router {
         .route("/", get(main))
         .route("/heartbeat", get(heartbeat))
         .route("/*file", get(match_all))
-        .layer(axum::middleware::from_fn(middleware::log))
         .layer(layer)
+        .layer(axum::middleware::from_fn(middleware::log))
         .with_state(state)
 }
 
 pub async fn main() -> impl IntoResponse {
-    Ok::<ApiResponse<Value>, ApiResponse<Empty>>(ok(
+    ok(
         StatusCode::OK,
         json!({
             "hello": "world",
             "build": json!({
                 "version": VERSION,
-                "commit_hash": COMMIT_HASH,
+                "commit": format!("https://github.com/Noelware/hazel/commit/{COMMIT_HASH}"),
                 "build_date": BUILD_DATE
             })
         }),
-    ))
+    )
 }
 
 pub async fn heartbeat() -> &'static str {
     "Ok."
 }
 
-#[instrument(name = "data_proxy")]
+#[instrument(name = "hazel.proxy", skip(app))]
 pub async fn match_all(
     Path(path): Path<String>,
     State(app): State<Hazel>,
@@ -76,7 +76,10 @@ pub async fn match_all(
         _ => paths.join("/"),
     };
 
-    let blob = app.storage.blob(look_for.clone()).await.map_err(|_| {
+    let blob = app.storage.blob(look_for.clone()).await.map_err(|e| {
+        error!(%e, "unable to locate blob");
+        sentry::capture_error(&e);
+
         err(
             StatusCode::INTERNAL_SERVER_ERROR,
             ("INTERNAL_SERVER_ERROR", format!("Unable to fetch item").as_str()).into(),
@@ -86,27 +89,23 @@ pub async fn match_all(
     if blob.is_none() {
         return Err::<Response<_>, ApiResponse<Empty>>(err(
             StatusCode::NOT_FOUND,
-            (
-                "NOT_FOUND",
-                format!("Route '{look_for}' was not found.")
-                    .as_str()
-                    .replace('.', "")
-                    .as_str(),
-            )
-                .into(),
+            ("NOT_FOUND", format!("Route '{look_for}' was not found").as_str()).into(),
         ));
     }
 
     let blob = blob.unwrap();
     match blob {
-        Blob::Directory(_) => Ok(ok(StatusCode::OK, "directory support will come soon.").into()),
+        Blob::Directory(_) => Err::<Response<_>, ApiResponse<Empty>>(err(
+            StatusCode::NOT_FOUND,
+            ("NOT_FOUND", format!("Route '{look_for}' was not found").as_str()).into(),
+        )),
+
         Blob::File(file) => {
             let contents = file.data();
-
             let octet_str: &String = &APPLICATION_OCTET_STREAM.into();
             let headers = [(header::CONTENT_TYPE, file.content_type().unwrap_or(octet_str).as_str())];
 
-            Ok((headers, contents).into_response())
+            Ok((headers, contents.clone()).into_response())
         }
     }
 }

@@ -16,7 +16,7 @@
 use std::time::Instant;
 
 use axum::{
-    http::{Method, Request, Uri, Version},
+    http::{header, HeaderMap, HeaderValue, Method, Request, Uri, Version},
     middleware::Next,
     response::IntoResponse,
 };
@@ -26,11 +26,16 @@ pub struct Metadata {
     pub(crate) uri: Uri,
     pub(crate) method: Method,
     pub(crate) version: Version,
+    pub(crate) headers: HeaderMap,
 }
 
 pub async fn log<B>(metadata: Metadata, req: Request<B>, next: Next<B>) -> impl IntoResponse {
-    let start = Instant::now();
     let uri = metadata.uri.path();
+    if uri.contains("/heartbeat") {
+        return next.run(req).await;
+    }
+
+    let start = Instant::now();
     let method = metadata.method.as_str();
     let version = match metadata.version {
         Version::HTTP_09 => "http/0.9",
@@ -41,29 +46,44 @@ pub async fn log<B>(metadata: Metadata, req: Request<B>, next: Next<B>) -> impl 
         _ => "http/???",
     };
 
-    if !uri.contains("/heartbeat") {
-        info!(
-            %uri,
-            %method,
-            %version,
-            "processing request"
-        );
-    }
+    let default_ua = HeaderValue::from_static("unknown");
+    let ua = metadata
+        .headers
+        .get(header::USER_AGENT)
+        .unwrap_or(&default_ua)
+        .to_str()
+        .unwrap_or("unknown");
 
+    info!(
+        req.uri = uri,
+        req.method = method,
+        req.version = version,
+        req.ua = ua,
+        "processing request"
+    );
+
+    let span = info_span!(
+        "hazel.http.request",
+        req.uri = uri,
+        req.method = method,
+        req.version = version,
+        req.ua = ua
+    );
+
+    let _guard = span.enter();
     let res = next.run(req).await;
-    let now = start.elapsed();
+    let now = format!("{:?}", start.elapsed());
 
-    if !uri.contains("/heartbeat") {
-        let status = res.status();
-        info!(
-            %uri,
-            %method,
-            %version,
-            "processed request -> {} [{:?}]",
-            status,
-            now
-        );
-    }
+    let status = res.status();
+    info!(
+        req.uri = uri,
+        req.method = method,
+        req.version = version,
+        req.ua = ua,
+        res.status = status.as_u16(),
+        latency = now,
+        "processed request",
+    );
 
     res
 }

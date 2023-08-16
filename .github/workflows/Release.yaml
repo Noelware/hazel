@@ -1,0 +1,322 @@
+# 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+# Copyright 2022-2023 Noelware, LLC. <team@noelware.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Release CI (Stable)
+on:
+    release:
+        types: [published]
+jobs:
+    binary:
+        name: Build binary
+        runs-on: ${{matrix.runner}}
+        strategy:
+            fail-fast: true
+            matrix:
+                runner: [windows-latest, macos-latest, ubuntu-latest, self-hosted]
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+
+            - name: Get current release tag
+              uses: auguwu/git-tag-action@master
+              id: tag
+
+            - name: Setup Rust toolchain
+              uses: dtolnay/rust-toolchain@master
+              with:
+                toolchain: stable
+
+            - name: Build binary
+              run: cargo build --release
+              env:
+                CARGO_INCREMENTAL: 1
+
+            - name: Rename binary
+              shell: bash
+              id: binary
+              run: |
+                os=""
+                arch=""
+
+                case $(uname -s) in
+                    Darwin)
+                        os="macos"
+                        echo "extension=" >> $GITHUB_OUTPUT
+
+                        ;;
+
+                    Linux)
+                        os="linux"
+                        echo "extension=" >> $GITHUB_OUTPUT
+
+                        ;;
+                    MINGW64*)
+                        os="windows"
+                        echo "extension=.exe" >> $GITHUB_OUTPUT
+
+                        ;;
+                    *)
+                        exit 1
+                        ;;
+                esac
+
+                case $(uname -m) in
+                    x86_64|amd64)
+                        arch="x86_64"
+                        ;;
+                    arm64|aarch64)
+                        arch="aarch64"
+                        ;;
+                    *)
+                        exit 1
+                        ;;
+                esac
+
+                mkdir -p ${GITHUB_WORKSPACE}/bin
+                if [ -f "${GITHUB_WORKSPACE}/target/release/hazel" ]; then
+                    cp ${GITHUB_WORKSPACE}/target/release/hazel ${GITHUB_WORKSPACE}/bin/hazel-$os-$arch
+                    echo "location=${GITHUB_WORKSPACE}/bin/hazel-$os-$arch" >> $GITHUB_OUTPUT
+                    echo "file=hazel-$os-$arch" >> $GITHUB_OUTPUT
+                fi
+
+                if [ -f "${GITHUB_WORKSPACE}/target/release/hazel.exe" ]; then
+                    cp ${GITHUB_WORKSPACE}/target/release/hazel.exe ${GITHUB_WORKSPACE}/bin/hazel-$os-$arch.exe
+                    echo "location=${GITHUB_WORKSPACE}/bin/hazel-$os-$arch.exe" >> $GITHUB_OUTPUT
+                    echo "file=hazel-$os-$arch.exe" >> $GITHUB_OUTPUT
+                fi
+
+            - name: Upload binary artifact to workflow
+              uses: actions/upload-artifact@v3
+              with:
+                name: hazel${{steps.binary.outputs.extension}}
+                path: ${{steps.binary.outputs.location}}
+
+            - name: Upload binary artifact to release
+              uses: softprops/action-gh-release@v1
+              with:
+                files: ${{steps.binary.outputs.location}}
+
+            - name: Upload binary to Noelware's Artifact Registry (/hazel/latest)
+              uses: Noelware/s3-action@2.2.1
+              with:
+                enforce-path-access-style: true
+                access-key-id: ${{secrets.S3_ACCESS_KEY}}
+                path-format: $(prefix)/hazel/latest/${{steps.binary.outputs.file}}
+                secret-key: ${{secrets.S3_SECRET_KEY}}
+                endpoint: ${{secrets.S3_ENDPOINT}}
+                region: us-east-1
+                prefix: /noelware/artifacts
+                bucket: august
+                files: ${{steps.binary.outputs.location}}
+
+            - name: Upload binary to Noelware's Artifact Registry (/hazel/${{steps.tag.outputs.version}})
+              uses: Noelware/s3-action@2.2.1
+              with:
+                enforce-path-access-style: true
+                access-key-id: ${{secrets.S3_ACCESS_KEY}}
+                path-format: $(prefix)/hazel/${{steps.tag.outputs.version}}/${{steps.binary.outputs.file}}
+                secret-key: ${{secrets.S3_SECRET_KEY}}
+                endpoint: ${{secrets.S3_ENDPOINT}}
+                region: us-east-1
+                prefix: /noelware/artifacts
+                bucket: august
+                files: ${{steps.binary.outputs.location}}
+    debian-docker:
+        name: Build Docker Image (debian ~ ${{matrix.platform}})
+        runs-on: ${{matrix.runner}}
+        strategy:
+          fail-fast: true
+          matrix:
+            runner: [ubuntu-latest, self-hosted]
+            include:
+                - runner: ubuntu-latest
+                  platform: linux/amd64
+                  arch: amd64
+                - runner: self-hosted
+                  platform: linux/arm64
+                  arch: arm64
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+
+            - name: Get current release tag
+              uses: auguwu/git-tag-action@master
+              id: tag
+
+            - name: Get commit hash
+              id: commit
+              run: echo "commit=$(git rev-parse --short=8 $GITHUB_SHA)" >> $GITHUB_OUTPUT
+
+            - name: Setup Docker buildx
+              uses: docker/setup-buildx-action@v2
+
+            - name: Login into cr.noelware.cloud
+              uses: docker/login-action@v2
+              with:
+                registry: cr.noelware.cloud
+                username: noelbot
+                password: ${{secrets.DOCKER_PASSWORD}}
+
+            - name: Build and push!
+              uses: docker/build-push-action@v4
+              with:
+                platforms: ${{matrix.platform}}
+                context: .
+                file: ./distribution/docker/debian.Dockerfile
+                push: true
+                tags: |
+                    cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-${{matrix.arch}},
+                    cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-${{matrix.arch}},
+                    cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-${{matrix.arch}},
+                    cr.noelware.cloud/noelware/hazel:latest-${{matrix.arch}}
+                labels: |
+                    org.opencontainers.image.title="Hazel",
+                    org.opencontainers.image.description="🪶 Minimal, and fast HTTP proxy to host files from any cloud storage provider.",
+                    org.opencontainers.image.version=${{steps.tag.outputs.version}},
+                    org.opencontainers.image.revision=${{steps.commit.outputs.commit}},
+                    org.opencontainers.image.licenses=Apache-2.0,
+                    org.opencontainers.image.documentation="https://docs.noelware.org/services/hazel/${{steps.tag.outputs.version}}",
+                    org.opencontainers.image.source="https://github.com/Noelware/hazel"
+    alpine-docker:
+        name: Build Docker Image (alpine ~ ${{matrix.platform}})
+        runs-on: ${{matrix.runner}}
+        strategy:
+          fail-fast: true
+          matrix:
+            runner: [ubuntu-latest, self-hosted]
+            include:
+                - runner: ubuntu-latest
+                  platform: linux/amd64
+                  arch: amd64
+                - runner: self-hosted
+                  platform: linux/arm64
+                  arch: arm64
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+
+            - name: Get current release tag
+              uses: auguwu/git-tag-action@master
+              id: tag
+
+            - name: Get commit hash
+              id: commit
+              run: echo "commit=$(git rev-parse --short=8 $GITHUB_SHA)" >> $GITHUB_OUTPUT
+
+            - name: Setup Docker buildx
+              uses: docker/setup-buildx-action@v2
+
+            - name: Login into cr.noelware.cloud
+              uses: docker/login-action@v2
+              with:
+                registry: cr.noelware.cloud
+                username: noelbot
+                password: ${{secrets.DOCKER_PASSWORD}}
+
+            - name: Build and push!
+              uses: docker/build-push-action@v4
+              with:
+                platforms: ${{matrix.platform}}
+                provenance: false
+                context: .
+                file: ./distribution/docker/alpine.Dockerfile
+                push: true
+                tags: |
+                    cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine-${{matrix.arch}},
+                    cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine-${{matrix.arch}},
+                    cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine-${{matrix.arch}},
+                    cr.noelware.cloud/noelware/hazel:alpine-${{matrix.arch}}
+                labels: |
+                    org.opencontainers.image.title="Hazel",
+                    org.opencontainers.image.description="🪶 Minimal, and fast HTTP proxy to host files from any cloud storage provider.",
+                    org.opencontainers.image.version=${{steps.tag.outputs.version}},
+                    org.opencontainers.image.revision=${{steps.commit.outputs.commit}},
+                    org.opencontainers.image.licenses=Apache-2.0,
+                    org.opencontainers.image.documentation="https://docs.noelware.org/services/hazel/${{steps.tag.outputs.version}}",
+                    org.opencontainers.image.source="https://github.com/Noelware/hazel"
+    manifests:
+        name: Merge Docker Manifests
+        runs-on: ubuntu-latest
+        needs: [alpine-docker, debian-docker]
+        steps:
+            - name: Get current release tag
+              uses: auguwu/git-tag-action@master
+              id: tag
+
+            - name: Setup Docker buildx
+              uses: docker/setup-buildx-action@v2
+
+            - name: Login into cr.noelware.cloud
+              uses: docker/login-action@v2
+              with:
+                registry: cr.noelware.cloud
+                username: noelbot
+                password: ${{secrets.DOCKER_PASSWORD}}
+
+            - name: Create manifest [cr.noelware.cloud/noelware/hazel:latest]
+              uses: Noelware/docker-manifest-action@0.4.0
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:latest-amd64,cr.noelware.cloud/noelware/hazel:latest-arm64
+                images: cr.noelware.cloud/noelware/hazel:latest
+                push: true
+
+            - name: Create manifest [cr.noelware.cloud/noelware/hazel:alpine]
+              uses: Noelware/docker-manifest-action@0.4.0
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:alpine-amd64,cr.noelware.cloud/noelware/hazel:alpine-arm64
+                images: cr.noelware.cloud/noelware/hazel:alpine
+                push: true
+
+            - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}]
+              uses: Noelware/docker-manifest-action@0.4.0
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-arm64
+                images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}
+                push: true
+
+            - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine]
+              uses: Noelware/docker-manifest-action@0.4.0
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine-arm64
+                images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine
+                push: true
+
+            - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}]
+              uses: Noelware/docker-manifest-action@0.4.0
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-arm64
+                images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}
+                push: true
+
+            - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine]
+              uses: Noelware/docker-manifest-action@0.4.0
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine-arm64
+                images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine
+                push: true
+
+            - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}]
+              uses: Noelware/docker-manifest-action@0.4.0
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-arm64
+                images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}
+                push: true
+
+            - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine]
+              uses: Noelware/docker-manifest-action@0.4.0
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine-arm64
+                images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine
+                push: true

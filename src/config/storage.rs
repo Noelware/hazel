@@ -13,22 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{borrow::Cow, str::FromStr};
-
+use super::{FromEnv, TryFromEnv};
+use crate::BOOL_REGEX;
 use aws_sdk_s3::{
-    model::{BucketCannedAcl, ObjectCannedAcl},
-    Region,
+    config::Region,
+    types::{BucketCannedAcl, ObjectCannedAcl},
 };
 use remi_fs::FilesystemStorageConfig;
 use remi_s3::S3StorageConfig;
 use serde::{Deserialize, Serialize};
-
-use crate::BOOL_REGEX;
-
-use super::{FromEnv, TryFromEnv};
+use std::{borrow::Cow, str::FromStr};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[allow(clippy::large_enum_variant)]
 pub enum StorageConfig {
     S3(S3StorageConfig),
     Filesystem(FilesystemStorageConfig),
@@ -41,7 +39,7 @@ impl Default for StorageConfig {
             Err(_) => "./data".into(),
         };
 
-        StorageConfig::Filesystem(FilesystemStorageConfig::builder().directory(data_dir).build().unwrap())
+        StorageConfig::Filesystem(FilesystemStorageConfig::new(data_dir))
     }
 }
 
@@ -61,9 +59,7 @@ impl TryFromEnv<StorageConfig> for StorageConfig {
                         Err(_) => "./data".into(),
                     };
 
-                    Ok(StorageConfig::Filesystem(
-                        FilesystemStorageConfig::builder().directory(data_dir).build().unwrap(),
-                    ))
+                    Ok(StorageConfig::Filesystem(FilesystemStorageConfig::new(data_dir)))
                 }
 
                 "s3" => {
@@ -89,6 +85,21 @@ impl TryFromEnv<StorageConfig> for StorageConfig {
                             .map_err(|_| eyre!("unable to use '{val}' as default bucket canned acl"))?,
 
                         Err(_) => BucketCannedAcl::PublicRead,
+                    };
+
+                    let endpoint = match std::env::var("HAZEL_STORAGE_S3_ENDPOINT") {
+                        Ok(val) => Some(val),
+                        Err(_) => None,
+                    };
+
+                    let prefix = match std::env::var("HAZEL_STORAGE_S3_PREFIX") {
+                        Ok(val) => Some(val),
+                        Err(_) => None,
+                    };
+
+                    let app_name = match std::env::var("HAZEL_STORAGE_S3_APP_NAME") {
+                        Ok(val) => val,
+                        Err(_) => "Noelware/hazel".into(),
                     };
 
                     let secret_access_key = match std::env::var("HAZEL_STORAGE_S3_SECRET_ACCESS_KEY") {
@@ -123,16 +134,19 @@ impl TryFromEnv<StorageConfig> for StorageConfig {
                         }
                     };
 
-                    let config = S3StorageConfig::builder()
-                        .enable_signer_v4_requests(enable_signer_v4_requests)
-                        .enforce_path_access_style(enforce_path_access_style)
-                        .default_bucket_acl(Some(default_bucket_acl))
-                        .default_object_acl(Some(default_object_acl))
-                        .secret_access_key(secret_access_key)
-                        .access_key_id(access_key_id)
-                        .region(Some(region))
-                        .bucket(bucket)
-                        .build()?;
+                    let config = S3StorageConfig::default()
+                        .with_enable_signer_v4_requests(enable_signer_v4_requests)
+                        .with_enforce_path_access_style(enforce_path_access_style)
+                        .with_default_bucket_acl(Some(default_bucket_acl))
+                        .with_default_object_acl(Some(default_object_acl))
+                        .with_secret_access_key(secret_access_key)
+                        .with_access_key_id(access_key_id)
+                        .with_app_name(Some(app_name))
+                        .with_region(Some(region))
+                        .with_endpoint(endpoint)
+                        .with_prefix(prefix)
+                        .with_bucket(bucket)
+                        .seal();
 
                     Ok(StorageConfig::S3(config))
                 }
