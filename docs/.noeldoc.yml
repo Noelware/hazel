@@ -1,0 +1,37 @@
+# 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+# Copyright 2022-2023 Noelware <team@noelware.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: hazel
+description: "🪶 Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints"
+version: '{{ (.Noeldoc.ReadTomlFile "{{ .Noeldoc.Cwd }}/../Cargo.toml").GetKey "version" }}'
+pipelines:
+  - name: Markdown Plugin
+    id: markdown
+    plugins: [dev.noeldoc.plugins:markdown]
+    options:
+      versions:
+        latestVersionKey: current
+        masterVersionKey: master
+      mdx: false
+      files:
+        - '{{ .Noeldoc.Cwd }}/src/**/*.md'
+renderers:
+  - name: Markdown Renderer
+    id: markdown
+    renderers: [dev.noeldoc.plugins:markdown]
+    pipelines: [markdown]
+    options:
+      validate: true
+      mdx: false
