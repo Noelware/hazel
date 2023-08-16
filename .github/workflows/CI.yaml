@@ -43,6 +43,8 @@ on:
             - '**.md'
             - LICENSE
             - renovate.json
+permissions:
+    checks: write
 jobs:
     rust:
         name: Rust CI [${{matrix.rust-version}} on ${{matrix.runner == 'ubuntu-latest' && 'Linux (x86_64)' || matrix.runner == 'windows-latest' && 'Windows' || matrix.runner == 'macos-latest' && 'macOS' || matrix.runner == 'self-hosted' && 'Linux (arm64)' || matrix.runner}}]
@@ -83,7 +85,7 @@ jobs:
               uses: Swatinem/rust-cache@v2
 
             - name: Clippy!
-              uses: auguwu/clippy-action@1.2.0
+              uses: auguwu/clippy-action@1.2.1
               with:
                 all-features: true
                 token: ${{secrets.GITHUB_TOKEN}}
