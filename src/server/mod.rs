@@ -82,7 +82,7 @@ pub async fn match_all(
 
         err(
             StatusCode::INTERNAL_SERVER_ERROR,
-            ("INTERNAL_SERVER_ERROR", format!("Unable to fetch item").as_str()).into(),
+            ("INTERNAL_SERVER_ERROR", "Unable to fetch item").into(),
         )
     })?;
 

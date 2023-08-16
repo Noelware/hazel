@@ -13,13 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::time::Instant;
-
 use axum::{
     http::{header, HeaderMap, HeaderValue, Method, Request, Uri, Version},
     middleware::Next,
     response::IntoResponse,
 };
+use std::time::Instant;
 
 #[derive(axum::extract::FromRequestParts)]
 pub struct Metadata {
