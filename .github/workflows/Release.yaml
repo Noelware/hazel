@@ -42,6 +42,7 @@ jobs:
               run: cargo build --release
               env:
                 CARGO_INCREMENTAL: 1
+                RUSTFLAGS: "-Dwarnings"
 
             - name: Rename binary
               shell: bash
