@@ -137,7 +137,7 @@ jobs:
           password: ${{secrets.GITHUB_TOKEN}}
 
       - name: Build and push! (x86_64)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           platforms: linux/amd64
           context: .
@@ -157,7 +157,7 @@ jobs:
             ghcr.io/noelware/hazel:${{steps.tag.outputs.version}}-amd64,
             ghcr.io/noelware/hazel:latest-amd64
       - name: Build and push! (arm64)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           platforms: linux/arm64/v8
           context: .
