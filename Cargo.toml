@@ -44,7 +44,7 @@ sentry-tracing = "0.31.5"
 serde = "1.0.183"
 serde_json = "1.0.105"
 serde_yaml = "0.9.25"
-tokio = "1.28.1"
+tokio = "1.32.0"
 tower = { version = "0.4.13", features = ["tracing"] }
 tower-layer = "0.3.2"
 tracing = "0.1.37"
