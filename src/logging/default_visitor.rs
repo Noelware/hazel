@@ -13,9 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io::{stdout, Result, Write};
-
 use ansi_term::Colour::RGB;
+use std::io::{stdout, Result, Write};
 use tracing::field::Visit;
 
 pub struct DefaultVisitor {

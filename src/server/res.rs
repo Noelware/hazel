@@ -13,13 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt::Debug;
-
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ApiResponse<T>

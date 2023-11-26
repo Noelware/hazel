@@ -13,14 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{borrow::Cow, net::SocketAddr, str::FromStr};
-
 use axum::Server;
 use eyre::Result;
 use hazel::{
     app::Hazel, config::Config, logging::HazelLayer, remi::StorageServiceDelegate, server, COMMIT_HASH, VERSION,
 };
 use remi_core::StorageService;
+use std::{borrow::Cow, net::SocketAddr, str::FromStr};
 use tokio::{select, signal};
 use tracing::{metadata::LevelFilter, *};
 use tracing_subscriber::prelude::*;
@@ -51,7 +50,6 @@ async fn main() -> Result<()> {
             dsn: Some(sentry::types::Dsn::from_str(dsn.as_str())?),
             release: Some(Cow::Owned(format!("v{VERSION}+{COMMIT_HASH}"))),
             traces_sample_rate: 1.0,
-            enable_profiling: true,
             attach_stacktrace: true,
             server_name: Some(service_name),
 

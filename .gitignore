@@ -516,5 +516,6 @@ FodyWeavers.xsd
 
 !distribution/bin
 config.yml
+.direnv/
 .data/
 data/

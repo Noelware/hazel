@@ -13,9 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::BTreeMap;
-
 use serde_json::{json, Value};
+use std::collections::BTreeMap;
 use tracing::field::Visit;
 
 pub struct JsonVisitor<'a>(pub &'a mut BTreeMap<String, Value>);
