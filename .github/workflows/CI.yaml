@@ -52,7 +52,7 @@ jobs:
         strategy:
             matrix:
                 rust-version: [stable, nightly]
-                runner: [ubuntu-latest, windows-latest, macos-latest, self-hosted]
+                runner: [ubuntu-latest, windows-latest, macos-latest]
         steps:
             - name: Checkout repository
               uses: actions/checkout@v3
