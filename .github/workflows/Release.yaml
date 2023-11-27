@@ -27,7 +27,7 @@ jobs:
                 runner: [windows-latest, macos-latest, ubuntu-latest, self-hosted]
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Get current release tag
               uses: auguwu/git-tag-action@master
@@ -150,7 +150,7 @@ jobs:
                   arch: arm64
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Get current release tag
               uses: auguwu/git-tag-action@master
@@ -206,7 +206,7 @@ jobs:
                   arch: arm64
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Get current release tag
               uses: auguwu/git-tag-action@master
