@@ -99,7 +99,7 @@ jobs:
                 fi
 
             - name: Upload binary artifact to workflow
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                 name: hazel${{steps.binary.outputs.extension}}
                 path: ${{steps.binary.outputs.location}}
