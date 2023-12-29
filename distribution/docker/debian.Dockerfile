@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM rust:1.74-slim-bullseye AS build
+FROM rust:1.75-slim-bullseye AS build
 
 RUN DEBIAN_FRONTEND=noninteractive apt update && DEBIAN_FRONTEND=noninteractive apt install -y git ca-certificates curl pkg-config libssl-dev
 WORKDIR /build

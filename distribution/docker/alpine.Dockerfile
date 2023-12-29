@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM rust:1.74-alpine3.18 AS build
+FROM rust:1.75-alpine3.18 AS build
 
 RUN apk update && apk add --no-cache git ca-certificates curl musl-dev libc6-compat gcompat pkgconfig openssl-dev
 WORKDIR /build
