@@ -38,7 +38,7 @@ regex = "1.10.2"
 remi-core = "0.4.3"
 remi-fs = { version = "0.4.3", features = ["serde", "log", "file-format"] }
 remi-s3 = { version = "0.4.3", features = ["serde", "log"] }
-sentry = { version = "0.31.8", features = ["tracing", "tower", "tower-http"] }
+sentry = { version = "0.32.1", features = ["tracing", "tower", "tower-http"] }
 sentry-tower = "0.32.1"
 sentry-tracing = "0.32.1"
 serde = "1.0.195"
