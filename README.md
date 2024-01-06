@@ -30,15 +30,17 @@ The image can consist with multiple tags for styles on how to deploy to your env
 
 Now, if you wish to use the local filesystem for Hazel, it is recommended to create a Docker volume using the `docker volume` command or with a local path, which can be any path like `~/.local/containers/hazel`.
 
-> **Note**: Hazel only holds persistence over files that are served from the local filesystem. If you wish to use
+> [!NOTE]
+> Hazel only holds persistence over files that are served from the local filesystem. If you wish to use
 > other providers, this is not a required step.
 >
 > You can create a volume with `docker volume create`:
 > ```shell
 > $ docker volume create hazel
 > ```
->
-> **Note**: You can substitute `hazel` with any volume name, but you will have to change `hazel` to the volume
+
+> [!NOTE]
+> You can substitute `hazel` with any volume name, but you will have to change `hazel` to the volume
 > name in later examples if you went with creating a volume with `docker volume`.
 >
 > For regular filesystem-mounted directories, you will need to change the ownership of the directory so
@@ -51,7 +53,7 @@ Now, if you wish to use the local filesystem for Hazel, it is recommended to cre
 Now, we can pull the image from [Noelware's Container Registry](https://cr.noelware.cloud):
 
 ```shell
-$ docker pull cr.noelware.cloud/hazel/hazel:latest
+$ docker pull cr.noelware.cloud/hazel/hazel
 ```
 
 Now, we can run the container!
@@ -61,7 +63,7 @@ Now, we can run the container!
 # filesystem.
 $ docker run -d -p 8989:8989 --name hazel \
     -e HAZEL_SERVER_NAME=my-hazel-instance \
-    cr.noelware.cloud/hazel/hazel:latest
+    cr.noelware.cloud/hazel/hazel
 ```
 
 ### Helm
