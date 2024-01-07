@@ -83,7 +83,7 @@
           pname = "hazel-clippy";
         });
 
-      # build the ume cli and server
+      # build the hazel cli and server
       hazel = craneLib.buildPackage (commonArgs
         // {
           inherit artifacts;
@@ -104,7 +104,6 @@
         buildInputs = with pkgs; [
           cargo-expand
           openssl
-          cargo
           rust
         ];
 

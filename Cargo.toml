@@ -26,8 +26,9 @@ documentation = "https://docs.noelware.org/services/hazel/current"
 ansi_term = "0.12.1"
 async-trait = "0.1.77"
 aws-sdk-s3 = "1.11.0"
-axum = { version = "0.6.20", features = ["headers", "macros"] }
+axum = { version = "0.7.3", features = ["macros", "http2"] }
 bytes = "1.5.0"
+charted-common = { git = "https://github.com/charted-dev/charted", version = "0.0.0-devel.0" }
 chrono = "0.4.31"
 color-eyre = "0.6.2"
 dotenv = "0.15.0"
@@ -38,7 +39,8 @@ regex = "1.10.2"
 remi-core = "0.4.3"
 remi-fs = { version = "0.4.3", features = ["serde", "log", "file-format"] }
 remi-s3 = { version = "0.4.3", features = ["serde", "log"] }
-sentry = { version = "0.31.8", features = ["tracing", "tower", "tower-http"] }
+semver = "1.0.21"
+sentry = { version = "0.32.1", features = ["tracing", "tower", "tower-http"] }
 sentry-tower = "0.32.1"
 sentry-tracing = "0.32.1"
 serde = "1.0.195"
@@ -46,7 +48,13 @@ serde_json = "1.0.111"
 serde_yaml = "0.9.30"
 tokio = { version = "1.35.1", features = ["full"] }
 tower = { version = "0.4.13", features = ["tracing"] }
-tower-layer = "0.3.2"
+tower-http = { version = "0.5.0", features = [
+    "catch-panic",
+    "compression-gzip",
+    "compression-br",
+    "cors",
+    "timeout",
+] }
 tracing = "0.1.40"
 tracing-error = "0.2.0"
 tracing-log = "0.2.0"

@@ -14,6 +14,7 @@
 // limitations under the License.
 
 use axum::{
+    body::Body,
     http::{header, HeaderMap, HeaderValue, Method, Request, Uri, Version},
     middleware::Next,
     response::IntoResponse,
@@ -28,7 +29,7 @@ pub struct Metadata {
     pub(crate) headers: HeaderMap,
 }
 
-pub async fn log<B>(metadata: Metadata, req: Request<B>, next: Next<B>) -> impl IntoResponse {
+pub async fn log(metadata: Metadata, req: Request<Body>, next: Next) -> impl IntoResponse {
     let uri = metadata.uri.path();
     if uri.contains("/heartbeat") {
         return next.run(req).await;

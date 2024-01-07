@@ -13,23 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use axum::Server;
-use eyre::Result;
+use eyre::{Context, Result};
 use hazel::{
     app::Hazel, config::Config, logging::HazelLayer, remi::StorageServiceDelegate, server, COMMIT_HASH, VERSION,
 };
 use remi_core::StorageService;
-use std::{borrow::Cow, net::SocketAddr, str::FromStr};
-use tokio::{select, signal};
+use sentry::types::Dsn;
+use std::{borrow::Cow, str::FromStr};
+use tokio::{net::TcpListener, select, signal};
 use tracing::{metadata::LevelFilter, *};
 use tracing_subscriber::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Load up environment variables from external .env file!
+    color_eyre::install()?;
     dotenv::dotenv().unwrap_or_default();
-
-    // Load up the Hazel configuration
     Config::load()?;
 
     let config = Config::get();
@@ -38,50 +36,53 @@ async fn main() -> Result<()> {
         .with(config.sentry_dsn.as_ref().map(|_| sentry_tracing::layer()))
         .init();
 
-    let sentry_guard = if let Some(dsn) = config.sentry_dsn.clone() {
-        debug!("initializing Sentry");
-
-        let service_name = match &config.service_name {
-            Some(ref name) => Cow::Owned(name.to_string()),
-            None => Cow::Borrowed("hazel"),
-        };
-
-        Some(sentry::init(sentry::ClientOptions {
-            dsn: Some(sentry::types::Dsn::from_str(dsn.as_str())?),
-            release: Some(Cow::Owned(format!("v{VERSION}+{COMMIT_HASH}"))),
-            traces_sample_rate: 1.0,
-            attach_stacktrace: true,
-            server_name: Some(service_name),
-
-            ..Default::default()
-        }))
-    } else {
-        None
+    let service_name = match config.service_name {
+        Some(ref name) => Cow::Owned(name.to_owned()),
+        None => Cow::Borrowed("hazel"),
     };
 
-    info!(version = VERSION, commit = COMMIT_HASH, "starting hazel...");
+    let _sentry_guard = sentry::init(sentry::ClientOptions {
+        traces_sample_rate: 1.0,
+        attach_stacktrace: true,
+        server_name: Some(service_name),
+        release: Some(Cow::Owned(format!("v{VERSION}+{COMMIT_HASH}"))),
+        dsn: config
+            .sentry_dsn
+            .as_ref()
+            .map(|x| Dsn::from_str(x).unwrap_or_else(|e| panic!("unable to parse dsn [{x}]: {e}"))),
+
+        ..Default::default()
+    });
+
+    info!(
+        version = VERSION,
+        commit.hash = COMMIT_HASH,
+        "starting Hazel application..."
+    );
+
     let state = Hazel {
         storage: StorageServiceDelegate::default(),
         config,
     };
 
     state.storage.init().await?;
-
     let router = server::router(state);
-    let addr_string = format!("{}:{}", config.server.host, config.server.port);
-    let addr = addr_string.parse::<SocketAddr>()?;
+    let listener = TcpListener::bind(format!("{}:{}", config.server.host, config.server.port))
+        .await
+        .context(format!(
+            "unable to create TCP listener with params [{}:{}]",
+            config.server.host, config.server.port
+        ))?;
 
-    info!(%addr, "hazel is now listening on");
-    Server::bind(&addr)
-        .serve(router.into_make_service())
+    info!(
+        address = format!("{}:{}", config.server.host, config.server.port),
+        "bind HTTP service to"
+    );
+
+    axum::serve(listener, router)
         .with_graceful_shutdown(shutdown_signal())
-        .await?;
-
-    if let Some(guard) = sentry_guard {
-        drop(guard);
-    }
-
-    Ok(())
+        .await
+        .context("unable to run Hazel HTTP service")
 }
 
 async fn shutdown_signal() {

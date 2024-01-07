@@ -18,8 +18,9 @@ mod res;
 
 use crate::{app::Hazel, remi::StorageServiceDelegate, BUILD_DATE, COMMIT_HASH, VERSION};
 use axum::{
+    body::Body,
     extract::{Path, State},
-    http::{header, Response, StatusCode},
+    http::{header, Method, Response, StatusCode},
     response::IntoResponse,
     routing::*,
     Router,
@@ -29,14 +30,45 @@ use res::*;
 use sentry::integrations::tower::SentryHttpLayer;
 use sentry_tower::NewSentryLayer;
 use serde_json::json;
+use std::any::Any;
+use std::time::Duration;
 use tower::ServiceBuilder;
+use tower_http::{catch_panic::CatchPanicLayer, cors::CorsLayer, timeout::TimeoutLayer};
 
 const APPLICATION_OCTET_STREAM: &str = "application/octet-stream";
+
+fn panic_handler(error: Box<dyn Any + Send + 'static>) -> Response<Body> {
+    let details = charted_common::panic_message(error);
+
+    error!(%details, "received panic when executing rest handler");
+    Response::builder()
+        .status(StatusCode::INTERNAL_SERVER_ERROR)
+        .header(header::CONTENT_TYPE, "application/json; charset=utf-8")
+        .body(Body::from(
+            serde_json::to_string(&err(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                (
+                    "INTERNAL_SERVER_ERROR",
+                    "Unable to process your request. Please try again later or report this to Noelware via GitHub",
+                )
+                    .into(),
+            ))
+            .unwrap(),
+        ))
+        .unwrap()
+}
 
 pub fn router(state: Hazel) -> Router {
     let layer = ServiceBuilder::new()
         .layer(NewSentryLayer::new_from_top())
-        .layer(SentryHttpLayer::with_transaction());
+        .layer(SentryHttpLayer::with_transaction())
+        .layer(CatchPanicLayer::custom(panic_handler))
+        .layer(
+            CorsLayer::new()
+                .allow_methods([Method::GET])
+                .allow_origin(tower_http::cors::Any),
+        )
+        .layer(TimeoutLayer::new(Duration::from_secs(5)));
 
     Router::new()
         .route("/", get(main))
