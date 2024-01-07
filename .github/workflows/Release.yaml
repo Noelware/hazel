@@ -267,56 +267,56 @@ jobs:
                 password: ${{secrets.DOCKER_PASSWORD}}
 
             - name: Create manifest [cr.noelware.cloud/noelware/hazel:latest]
-              uses: Noelware/docker-manifest-action@0.4.0
+              uses: Noelware/docker-manifest-action@0.4.1
               with:
                 inputs: cr.noelware.cloud/noelware/hazel:latest-amd64,cr.noelware.cloud/noelware/hazel:latest-arm64
                 images: cr.noelware.cloud/noelware/hazel:latest
                 push: true
 
             - name: Create manifest [cr.noelware.cloud/noelware/hazel:alpine]
-              uses: Noelware/docker-manifest-action@0.4.0
+              uses: Noelware/docker-manifest-action@0.4.1
               with:
                 inputs: cr.noelware.cloud/noelware/hazel:alpine-amd64,cr.noelware.cloud/noelware/hazel:alpine-arm64
                 images: cr.noelware.cloud/noelware/hazel:alpine
                 push: true
 
             - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}]
-              uses: Noelware/docker-manifest-action@0.4.0
+              uses: Noelware/docker-manifest-action@0.4.1
               with:
                 inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-arm64
                 images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}
                 push: true
 
             - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine]
-              uses: Noelware/docker-manifest-action@0.4.0
+              uses: Noelware/docker-manifest-action@0.4.1
               with:
                 inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine-arm64
                 images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine
                 push: true
 
             - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}]
-              uses: Noelware/docker-manifest-action@0.4.0
+              uses: Noelware/docker-manifest-action@0.4.1
               with:
                 inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-arm64
                 images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}
                 push: true
 
             - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine]
-              uses: Noelware/docker-manifest-action@0.4.0
+              uses: Noelware/docker-manifest-action@0.4.1
               with:
                 inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine-arm64
                 images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine
                 push: true
 
             - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}]
-              uses: Noelware/docker-manifest-action@0.4.0
+              uses: Noelware/docker-manifest-action@0.4.1
               with:
                 inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-arm64
                 images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}
                 push: true
 
             - name: Create manifest [cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine]
-              uses: Noelware/docker-manifest-action@0.4.0
+              uses: Noelware/docker-manifest-action@0.4.1
               with:
                 inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine-arm64
                 images: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine
