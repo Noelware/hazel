@@ -35,7 +35,7 @@ dotenv = "0.15.0"
 eyre = "0.6.11"
 lazy_static = "1.4.0"
 once_cell = "1.19.0"
-regex = "1.10.2"
+regex = "1.10.4"
 remi-core = "0.4.3"
 remi-fs = { version = "0.4.3", features = ["serde", "log", "file-format"] }
 remi-s3 = { version = "0.4.3", features = ["serde", "log"] }
