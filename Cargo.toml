@@ -29,7 +29,7 @@ aws-sdk-s3 = "1.12.0"
 axum = { version = "0.7.4", features = ["macros", "http2"] }
 bytes = "1.5.0"
 charted-common = { git = "https://github.com/charted-dev/charted", version = "0.0.0-devel.0" }
-chrono = "0.4.31"
+chrono = "0.4.38"
 color-eyre = "0.6.2"
 dotenv = "0.15.0"
 eyre = "0.6.11"
@@ -61,4 +61,4 @@ tracing-log = "0.2.0"
 tracing-subscriber = "0.3.18"
 
 [build-dependencies]
-chrono = "0.4.31"
+chrono = "0.4.38"
