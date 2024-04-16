@@ -44,7 +44,7 @@ sentry = { version = "0.32.1", features = ["tracing", "tower", "tower-http"] }
 sentry-tower = "0.32.1"
 sentry-tracing = "0.32.1"
 serde = "1.0.195"
-serde_json = "1.0.111"
+serde_json = "1.0.116"
 serde_yaml = "0.9.30"
 tokio = { version = "1.35.1", features = ["full"] }
 tower = { version = "0.4.13", features = ["tracing"] }
