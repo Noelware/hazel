@@ -23,13 +23,11 @@ homepage = "https://noelware.org/services/hazel"
 documentation = "https://docs.noelware.org/services/hazel/current"
 
 [dependencies]
-async-trait = "0.1.80"
 aws-sdk-s3 = { version = "1.24.0", features = ["behavior-version-latest"] }
 axum = { version = "0.7.5", features = ["macros"] }
 axum-server = { version = "0.6.0", features = ["tls-rustls"] }
 azalia = { git = "https://github.com/Noelware/core-rs", version = "0.1.0", rev = "e5802ca9c317431e667542d4b63d508685edae0d" }
 azure_storage = "0.19.0"
-chrono = "0.4.38"
 color-eyre = { version = "0.6.3", features = ["issue-url", "tracing-error"] }
 dotenvy = "0.15.7"
 eyre = "0.6.12"
@@ -75,3 +73,10 @@ tracing-subscriber = "0.3.18"
 chrono = "0.4.38"
 rustc_version = "0.4.0"
 which = "6.0.1"
+
+[package.metadata.cargo-machete]
+ignored = [
+    "hcl-rs",                # `hcl` is the crate name, `hcl-rs` is the crates.io name
+    "tracing-log",           # ...idk
+    "tracing-opentelemetry", # plan on add OpenTelemetry support soon
+]

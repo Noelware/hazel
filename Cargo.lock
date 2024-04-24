@@ -1389,7 +1389,6 @@ dependencies = [
 name = "hazel"
 version = "2.0.0"
 dependencies = [
- "async-trait",
  "aws-sdk-s3",
  "axum",
  "axum-server",

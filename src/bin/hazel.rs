@@ -102,6 +102,7 @@ async fn real_main() -> eyre::Result<()> {
             })),
         )
         .with(sentry_tracing::layer())
+        .with(tracing_error::ErrorLayer::default())
         .init();
 
     info!("Bootstrapped Hazel system successfully");
