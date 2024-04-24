@@ -25,11 +25,9 @@
       };
     };
 
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
+    flake-compat = {
+      url = github:edolstra/flake-compat;
+      flake = false;
     };
   };
 
@@ -38,78 +36,81 @@
     nixpkgs,
     flake-utils,
     rust-overlay,
-    crane,
+    ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {
         inherit system;
+
         overlays = [(import rust-overlay)];
+        config.allowUnfree = true;
       };
 
+      rust = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      cargoTOML = builtins.fromTOML (builtins.readFile ./Cargo.toml);
       stdenv =
         if pkgs.stdenv.isLinux
         then pkgs.stdenv
         else pkgs.clangStdenv;
 
-      rust = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-      craneLib = crane.lib.${system};
-      commonArgs = {
-        src = craneLib.cleanCargoSource (craneLib.path ./.);
-        buildInputs = with pkgs; [
-          openssl
-        ];
-
-        nativeBuildInputs = with pkgs; [
-          pkg-config
-        ];
+      rustPlatform = pkgs.makeRustPlatform {
+        rustc = rust;
+        cargo = rust;
       };
 
       rustflags =
-        if stdenv.isLinux
+        if pkgs.stdenv.isLinux
         then ''-C link-arg=-fuse-ld=mold -C target-cpu=native $RUSTFLAGS''
-        else "$RUSTFLAGS";
+        else ''$RUSTFLAGS'';
 
-      # builds only the dependencies
-      artifacts = craneLib.buildDepsOnly (commonArgs
-        // {
-          pname = "hazel-deps";
-        });
+      hazel = rustPlatform.buildRustPackage {
+        nativeBuildInputs = with pkgs; [pkg-config];
+        buildInputs = with pkgs; [openssl];
+        cargoSha256 = pkgs.lib.fakeSha256;
+        version = "${cargoTOML.package.version}";
+        name = "hazel";
+        src = ./.;
 
-      # runs `cargo clippy`
-      clippy = craneLib.cargoClippy (commonArgs
-        // {
-          inherit artifacts;
+        cargoLock = {
+          lockFile = ./Cargo.lock;
+          outputHashes = {
+            # "noelware-config-0.1.0" = "sha256-4yred15se1RB2LJJ2htB8DPMfcCo9+9ZWNRFlsmbDmQ=";
+            # "arboard-3.3.2" = "sha256-H2xeFJkoeg0kN3pKsb2P4rxEeIbkoSwLVqFzBz5eb7g=";
+            # "azalia-0.1.0" = "sha256-wSBYHva/VbU0F++2XBUrg1Onhatq46gjksDyv1aMaeM=";
+          };
+        };
 
-          pname = "hazel-clippy";
-        });
-
-      # build the hazel cli and server
-      hazel = craneLib.buildPackage (commonArgs
-        // {
-          inherit artifacts;
-        });
+        meta = with pkgs.lib; {
+          description = "Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints";
+          homepage = "https://noelware.org/hazel";
+          license = with licenses; [asl20];
+          maintainers = with maintainers; [auguwu noelware];
+          mainProgram = "hazel";
+        };
+      };
     in {
-      packages.default = hazel;
-      checks = {
-        # checks for `nix flake check`
-        inherit hazel clippy;
+      packages = {
+        inherit hazel;
+        default = hazel;
       };
 
       devShells.default = pkgs.mkShell {
+        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [openssl]);
         nativeBuildInputs = with pkgs;
           [pkg-config]
-          ++ (lib.optional stdenv.isLinux [mold lldb])
+          ++ (lib.optional stdenv.isLinux [mold lldb gdb])
           ++ (lib.optional stdenv.isDarwin [darwin.apple_sdk.frameworks.CoreFoundation]);
 
         buildInputs = with pkgs; [
+          cargo-machete
           cargo-expand
-          openssl
-          rust
-        ];
+          cargo-deny
 
-        shellHook = ''
-          export RUSTFLAGS="--cfg tokio_unstable ${rustflags}"
-        '';
+          openssl
+          glibc
+          rust
+          git
+        ];
       };
     });
 }

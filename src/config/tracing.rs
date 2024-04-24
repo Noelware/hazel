@@ -13,17 +13,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use eyre::Result;
-
-/// Trait to implement a "from_env() -> T" function to load
-/// the object from the system environment variables.
-pub trait FromEnv<T> {
-    fn from_env() -> T;
-}
-
-/// Trait that implements a "try_from_env() -> Result<T>" to load up
-/// a object from the system environment variables which return a Result
-/// variant.
-pub trait TryFromEnv<T> {
-    fn try_from_env() -> Result<T>;
-}
+pub mod opentelemetry;
+pub mod sentry;

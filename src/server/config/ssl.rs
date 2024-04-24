@@ -12,12 +12,3 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-use crate::{config::Config, remi::StorageServiceDelegate};
-
-/// Represents the application state of hazel.
-#[derive(Debug, Clone)]
-pub struct Hazel {
-    pub storage: StorageServiceDelegate,
-    pub config: &'static Config,
-}
