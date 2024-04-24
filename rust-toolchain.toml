@@ -14,7 +14,7 @@
 # limitations under the License.
 
 [toolchain]
-channel = "1.74"
+channel = "1.77"
 profile = "minimal"
 components = [
     "rustc",
@@ -23,5 +23,5 @@ components = [
     "rust-src",
     "rust-std",
     "clippy",
-    "rustfmt"
+    "rustfmt",
 ]

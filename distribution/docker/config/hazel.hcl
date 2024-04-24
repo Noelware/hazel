@@ -16,6 +16,6 @@
 # This is the default configuration for Hazel. You can edit this file
 # and it'll be reflected once you restart the Hazel container.
 
-storage:
-  filesystem:
-    directory: /var/lib/noelware/hazel/data
+storage "filesystem" {
+    directory = "/var/lib/noelware/hazel/data"
+}

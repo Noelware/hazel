@@ -13,14 +13,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use hazel::config::{storage, Config};
+use noelware_config::env;
+use noelware_log::{writers, WriteLayer};
+use noelware_remi::StorageService;
+use owo_colors::{OwoColorize, Stream};
+use remi::StorageService as _;
+use sentry::{types::Dsn, ClientOptions};
 use std::{
-    cmp,
+    borrow::Cow,
+    cmp, io,
+    str::FromStr,
     sync::atomic::{AtomicUsize, Ordering},
 };
-
-use noelware_config::env;
-use owo_colors::{OwoColorize, Stream};
 use tokio::runtime::Builder;
+use tracing::{info, level_filters::LevelFilter, trace};
+use tracing_subscriber::{layer::SubscriberExt, prelude::*, Layer};
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -31,9 +39,11 @@ fn main() -> eyre::Result<()> {
 
     let workers = cmp::max(
         num_cpus::get(),
-        env!("HAZEL_WORKER_THREADS")
-            .map(|x| x.parse())?
-            .unwrap_or(num_cpus::get()),
+        match env!("HAZEL_WORKER_THREADS") {
+            Ok(val) => val.parse()?,
+            Err(std::env::VarError::NotPresent) => num_cpus::get(),
+            Err(e) => return Err(e.into()),
+        },
     );
 
     let rt = Builder::new_multi_thread()
@@ -58,5 +68,53 @@ async fn real_main() -> eyre::Result<()> {
         hazel::RUSTC.if_supports_color(Stream::Stderr, |x| x.bold())
     );
 
-    Ok(())
+    let config = Config::new()?;
+    let _sentry_guard = sentry::init(ClientOptions {
+        traces_sample_rate: 0.5,
+        attach_stacktrace: true,
+        server_name: Some(
+            config
+                .server_name
+                .clone()
+                .map(Cow::Owned)
+                .unwrap_or_else(|| Cow::Borrowed("hazel")),
+        ),
+
+        dsn: config
+            .sentry_dsn
+            .as_ref()
+            .map(|x| Dsn::from_str(x).expect("to have a valid Sentry DSN")),
+
+        ..Default::default()
+    });
+
+    tracing_subscriber::registry()
+        .with(
+            match config.logging.json {
+                false => WriteLayer::new_with(io::stdout(), writers::default),
+                true => WriteLayer::new_with(io::stdout(), writers::json),
+            }
+            .with_filter(LevelFilter::from_level(config.logging.level))
+            .with_filter(tracing_subscriber::filter::filter_fn(|meta| {
+                // disallow from getting logs from `tokio` since it doesn't contain anything
+                // useful to us
+                !meta.target().starts_with("tokio::")
+            })),
+        )
+        .with(sentry_tracing::layer())
+        .init();
+
+    info!("Bootstrapped Hazel system successfully");
+    trace!("determining data storage to use...");
+
+    let storage = match config.storage.clone() {
+        storage::Config::Filesystem(fs) => StorageService::Filesystem(remi_fs::StorageService::with_config(fs)),
+        storage::Config::Azure(azure) => StorageService::Azure(remi_azure::StorageService::new(azure)),
+        storage::Config::S3(s3) => StorageService::S3(remi_s3::StorageService::new(s3)),
+    };
+
+    storage.init().await?;
+    info!("Initialized data storage successfully!");
+
+    hazel::server::start(storage, config).await
 }
