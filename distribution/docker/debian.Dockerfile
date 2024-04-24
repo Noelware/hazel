@@ -13,13 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM rust:1.75-slim-bullseye AS build
+FROM rust:1.77-slim-bullseye AS build
 
 RUN DEBIAN_FRONTEND=noninteractive apt update && DEBIAN_FRONTEND=noninteractive apt install -y git ca-certificates curl pkg-config libssl-dev
 WORKDIR /build
 
-ENV RUSTFLAGS=-Ctarget-feature=-crt-static
-ENV CARGO_INCREMENTAL=1
+ENV CARGO_INCREMENTAL=0
 
 COPY . .
 RUN cargo build --release
@@ -35,10 +34,10 @@ COPY              distribution/docker/config  /app/noelware/hazel/config
 
 RUN mkdir -p /var/lib/noelware/hazel/data
 RUN groupadd -g 1001 noelware && \
-  useradd -rm -s /bin/bash -g noelware -u 1001 noelware && \
-  chown 1001:1001 /app/noelware/hazel && \
-  chown 1001:1001 /var/lib/noelware/hazel/data && \
-  chmod +x /app/noelware/hazel/scripts/docker-entrypoint.sh
+    useradd -rm -s /bin/bash -g noelware -u 1001 noelware && \
+    chown 1001:1001 /app/noelware/hazel && \
+    chown 1001:1001 /var/lib/noelware/hazel/data && \
+    chmod +x /app/noelware/hazel/scripts/docker-entrypoint.sh
 
 ENV HAZEL_DISTRIBUTION_KIND=docker
 EXPOSE 3939
