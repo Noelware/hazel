@@ -2549,9 +2549,9 @@ dependencies = [
 
 [[package]]
 name = "remi-s3"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aebf150c3922e14080930b340621a832849abd198b36ecf4cab6e3a11fa24c2"
+checksum = "9a81fea35c16a88093976159bba4e77b7adbd3a00925e57d97349a17ca403324"
 dependencies = [
  "async-trait",
  "aws-config",
