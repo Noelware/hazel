@@ -2505,9 +2505,9 @@ checksum = "adad44e29e4c806119491a7f06f03de4d1af22c3a680dd47f1e6e179439d1f56"
 
 [[package]]
 name = "remi"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be72aeef744a607b670d72c7a3b3a455e5b828dd371156f13266e9c5065aad4a"
+checksum = "969d4b13848113ce3669732737ed1ab609c85610fb007a05ca739f2879f3534b"
 dependencies = [
  "async-trait",
  "bytes",
