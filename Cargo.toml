@@ -23,7 +23,7 @@ homepage = "https://noelware.org/services/hazel"
 documentation = "https://docs.noelware.org/services/hazel/current"
 
 [dependencies]
-aws-sdk-s3 = { version = "1.24.0", features = ["behavior-version-latest"] }
+aws-sdk-s3 = { version = "1.25.0", features = ["behavior-version-latest"] }
 axum = { version = "0.7.5", features = ["macros"] }
 axum-server = { version = "0.6.0", features = ["tls-rustls"] }
 azalia = { git = "https://github.com/Noelware/core-rs", version = "0.1.0", rev = "e5802ca9c317431e667542d4b63d508685edae0d" }
