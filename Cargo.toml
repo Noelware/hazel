@@ -31,7 +31,7 @@ azure_storage = "0.19.0"
 color-eyre = { version = "0.6.3", features = ["issue-url", "tracing-error"] }
 dotenvy = "0.15.7"
 eyre = "0.6.12"
-hcl-rs = "0.16.9"
+hcl-rs = "0.17.0"
 mimalloc = "0.1.41"
 noelware-config = { git = "https://github.com/Noelware/core-rs", rev = "e5802ca9c317431e667542d4b63d508685edae0d", version = "0.1.0", features = [
     "derive",
