@@ -24,7 +24,7 @@ ENV CARGO_INCREMENTAL=0
 COPY . .
 RUN cargo build --release
 
-FROM alpine:3.19
+FROM alpine:3.20
 
 RUN apk update && apk add --no-cache bash tini
 WORKDIR /app/noelware/hazel
