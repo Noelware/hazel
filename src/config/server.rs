@@ -123,5 +123,5 @@ fn __default_host() -> String {
 
 #[inline]
 fn __default_port() -> u16 {
-    3621
+    8989
 }

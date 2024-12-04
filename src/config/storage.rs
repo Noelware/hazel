@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use std::{env::VarError, path::PathBuf};
 
 /// Represents the configuration for configuring the data storage where
-/// ume will put all images in.
+/// Hazel query all objects from.
 ///
 /// ## Examples
 /// ### Filesystem
@@ -38,7 +38,7 @@ pub enum Config {
     /// Allows **Hazel** to connect to Azure's Blob Storage to query objects.
     Azure(remi::azure::StorageConfig),
 
-    /// Allows **ume** to connect to Amazon AWS S3 (or any compatible server) to query objects.
+    /// Allows **Hazel** to connect to Amazon AWS S3 (or any compatible server) to query objects.
     S3(remi::s3::StorageConfig),
 }
 

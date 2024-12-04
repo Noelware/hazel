@@ -22,10 +22,6 @@ authors = ["Noel Towa <cutie@floofy.dev>"]
 homepage = "https://noelware.org/oss/hazel"
 documentation = "https://docs.noelware.org/hazel/current"
 
-[features]
-default = []
-openssl-vendored = ["dep:openssl", "openssl/vendored"]
-
 [dependencies]
 axum = { version = "0.7.9", features = ["macros"] }
 axum-server = { version = "0.7.1", features = ["tls-rustls"] }
@@ -34,7 +30,6 @@ dotenvy = "0.15.7"
 eyre = "0.6.12"
 mimalloc = "0.1.43"
 num_cpus = "1.16.0"
-openssl = { version = "0.10.68", optional = true }
 rand = "0.8.5"
 sentry = "0.35.0"
 sentry-tower = { version = "0.35.0", features = ["http", "axum"] }
@@ -46,7 +41,6 @@ toml = "0.8.19"
 tower-http = { version = "0.6.2", features = ["catch-panic"] }
 tracing = "0.1.41"
 tracing-error = "0.2.1"
-tracing-opentelemetry = "0.28.0"
 tracing-subscriber = "0.3.19"
 url = { version = "2.5.4", features = ["serde"] }
 
