@@ -1,4 +1,4 @@
-// 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+// 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 // Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::config::Config;
 use axum::{
     body::Body,
-    extract::FromRequestParts,
-    http::{header::USER_AGENT, Extensions, HeaderMap, HeaderValue, Method, Request, Uri, Version},
+    extract::{FromRequestParts, MatchedPath, Request},
+    http::{header::USER_AGENT, Extensions, HeaderMap, HeaderValue, Method, Uri, Version},
     middleware::Next,
     response::IntoResponse,
+    Extension,
 };
 use rand::distributions::{Alphanumeric, DistString};
 use std::{fmt::Display, ops::Deref, time::Instant};
+use tracing::{info, instrument};
 
-#[derive(FromRequestParts)]
-pub struct Metadata {
-    extensions: Extensions,
-    version: Version,
-    headers: HeaderMap,
-    method: Method,
-    uri: Uri,
-}
+use crate::config::Config;
 
 /// Represents the generated `x-request-id` header that the server creates on each
 /// request invocation.
@@ -65,89 +59,87 @@ impl From<XRequestId> for HeaderValue {
     }
 }
 
-pub async fn request_id(mut req: Request<Body>, next: Next) -> impl IntoResponse {
+pub async fn request_id(Extension(config): Extension<Config>, mut req: Request<Body>, next: Next) -> impl IntoResponse {
+    use std::fmt::Write;
+
     let id = XRequestId::generate();
     req.extensions_mut().insert(id.clone());
 
-    let config = req.extensions().get::<Config>().unwrap();
+    let mut server = String::from("Noelware/hazel");
+    if let Some(ref name) = config.server_name {
+        write!(server, " [{}]", name).unwrap();
+    }
+
+    write!(server, " (+https://github.com/Noelware/hazel; v{})", crate::version()).unwrap();
 
     let mut headers = HeaderMap::new();
     headers.insert("x-request-id", id.into());
-    headers.insert(
-        "server",
-        HeaderValue::from_str(
-            format!(
-                "Noelware/Hazel{} (+https://github.com/Noelware/hazel; v{})",
-                config
-                    .server_name
-                    .as_ref()
-                    .map(|server| format!(": {server}"))
-                    .unwrap_or_default(),
-                crate::version(),
-            )
-            .as_str(),
-        )
-        .unwrap(),
-    );
+    headers.insert("server", HeaderValue::from_str(&server).unwrap());
 
     (headers, next.run(req).await)
 }
 
+#[derive(FromRequestParts)]
+pub struct Metadata {
+    extensions: Extensions,
+    version: Version,
+    headers: HeaderMap,
+    matched: Option<MatchedPath>,
+    method: Method,
+    uri: Uri,
+}
+
+#[instrument(name = "hazel.http.request", skip_all, fields(
+    req.matched_path = %display_opt(metadata.matched.as_ref().map(MatchedPath::as_str)),
+    req.ua = %display_opt(get_user_agent(&metadata)),
+    req.id = %metadata.extensions.get::<XRequestId>().unwrap(),
+    http.version = http_version(&metadata),
+    http.method = metadata.method.as_str(),
+    http.uri = metadata.uri.path(),
+))]
 pub async fn log(metadata: Metadata, req: Request<Body>, next: Next) -> impl IntoResponse {
     let uri = metadata.uri.path();
-    if uri.contains("/healthz") {
+    if uri.contains("/heartbeat") {
         return next.run(req).await;
     }
 
     let start = Instant::now();
-    let method = metadata.method.as_str();
-    let version = match metadata.version {
+    info!("processing request");
+
+    let res = next.run(req).await;
+    let elapsed = start.elapsed();
+
+    info!(latency = ?elapsed, "processed request");
+    res
+}
+
+fn http_version(Metadata { version, .. }: &Metadata) -> &'static str {
+    match *version {
         Version::HTTP_09 => "http/0.9",
         Version::HTTP_10 => "http/1.0",
         Version::HTTP_11 => "http/1.1",
         Version::HTTP_2 => "http/2.0",
         Version::HTTP_3 => "http/3.0",
         _ => unimplemented!(),
-    };
+    }
+}
 
-    let id = metadata.extensions.get::<XRequestId>().unwrap();
-    let user_agent = metadata
-        .headers
+fn get_user_agent(Metadata { headers, .. }: &Metadata) -> Option<String> {
+    headers
         .get(USER_AGENT)
-        .map(|f| String::from_utf8_lossy(f.as_bytes()).to_string());
+        .map(|f| String::from_utf8_lossy(f.as_bytes()).to_string())
+}
 
-    let http_span = info_span!(
-        "ume.http.request",
-        req.ua = user_agent,
-        req.id = %id,
-        http.uri = uri,
-        http.method = method,
-        http.version = version
-    );
+fn display_opt<T: Display>(opt: Option<T>) -> impl Display {
+    struct Helper<T: Display>(Option<T>);
+    impl<T: Display> Display for Helper<T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self.0 {
+                Some(ref display) => Display::fmt(display, f),
+                None => f.write_str("<unknown>"),
+            }
+        }
+    }
 
-    let _guard = http_span.enter();
-    info!(
-        http.uri = uri,
-        http.method = method,
-        http.version = version,
-        req.id = %id,
-        req.ua = user_agent,
-        "processing request"
-    );
-
-    let res = next.run(req).await;
-    let now = start.elapsed();
-
-    info!(
-        http.uri = uri,
-        http.method = method,
-        http.version = version,
-        req.ua = user_agent,
-        response.status = res.status().as_u16(),
-        latency = ?now,
-        req.id = %id,
-        "processed request successfully"
-    );
-
-    res
+    Helper(opt)
 }

@@ -515,7 +515,7 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 !distribution/bin
-config.hcl
+config.toml
 !Cargo.lock
 !src/bin
 .direnv/

@@ -1,0 +1,102 @@
+# 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
+# Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file contains the TOML configuration reference for Noelware's Hazel project.
+# To load a custom configuration file, you can either:
+#
+#   - Place the `config.toml` in the root where you invoke your Hazel binary
+#   - Set it as the `HAZEL_CONFIG_FILE=<path>` environment variable
+#   - Have a `config/` directory with a `hazel.toml` file inside of it.
+#
+# You can see a prettier version of the reference on our documentation site:
+#        >> https://docs.noelware.org/hazel/current/config <<
+
+# |----------------------------------------------------------------------
+# | `server_name` (env: HAZEL_SERVER_NAME)
+# |
+# | This will set the server name to determine which Hazel instance
+# | this is. This is just cosmetic for Sentry reports and in the
+# | `Server` HTTP header that is set on all requests.
+# |
+# | By default, this is not set to anything.
+# |
+# | - Type: `string | null`
+# | - Default: `null`
+# |----------------------------------------------------------------------
+# server_name = ""
+
+# |----------------------------------------------------------------------
+# | `sentry_dsn` (env: HAZEL_SENTRY_DSN)
+# |
+# | A Sentry Data Source Name (DSN) to set to report all errors and panics
+# | to Sentry (https://sentry.io) or a self-hosted instance that runs
+# | Sentry (https://github.com/getsentry/self-hosted).
+# |
+# | WARNING: Hazel will panic if this DSN is not formatted correctly, you
+# | can read the Sentry documentation for the syntax.
+# |
+# | - Type: `string | null`
+# | - Default: `null`
+# |----------------------------------------------------------------------
+# sentry_dsn = ""
+
+# |----------------------------------------------------------------------
+# | This will configure the console logger that is present when you
+# | run the Hazel server.
+# |----------------------------------------------------------------------
+# [logging]
+#
+# |----------------------------------------------------------------------
+# | `logging.level` (env: HAZEL_LOG_LEVEL)
+# |
+# | Configures the logging capabilities when a log is being recorded. By
+# | default, it is set to the `INFO` level to receive messages that are
+# | important by the administrator of this instance.
+# |
+# | WARNING: The server will refuse to start if the log level is not
+# | either: "TRACE", "DEBUG", "INFO", "WARN", "ERROR" (lowercase variants
+# | are okay though)
+# |
+# | - Type: `string`
+# | - Default: `info`
+# |----------------------------------------------------------------------
+# level = "info"
+#
+# |----------------------------------------------------------------------
+# | `logging.json` (env: HAZEL_LOG_JSON)
+# |
+# | Whether if the server should report log messages as a JSON object. This
+# | is useful for log ingestion tools to analyze log messages that are
+# | emitted by the server.
+# |
+# | Type: `boolean`
+# | Default: `false`
+# |----------------------------------------------------------------------
+# json = false
+
+# |-------------------------------------------------------------------------
+# | The `storage` table will configure the data storage where all objects
+# | will be proxied from.
+# |-------------------------------------------------------------------------
+
+# |-------------------------------------------------------------------------
+# | Configures the local filesystem to host data storage from.
+# |-------------------------------------------------------------------------
+# [storage.filesystem]
+#
+# |-------------------------------------------------------------------------
+# | `storage.filesystem.directory` (env: HAZEL_STORAGE_FILESYSTEM_DIRECTORY)
+# |-------------------------------------------------------------------------
+# directory = "./data"

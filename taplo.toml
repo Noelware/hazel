@@ -1,4 +1,4 @@
-# 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+# 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 # Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This is the default configuration for Hazel. You can edit this file
-# and it'll be reflected once you restart the Hazel container.
-
-storage "filesystem" {
-    directory = "/var/lib/noelware/hazel/data"
-}
+[formatting]
+trailing_newline = true
+align_comments = false
+crlf = false

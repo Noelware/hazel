@@ -1,4 +1,4 @@
-// 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+// 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 // Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,22 +13,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::TRUTHY_REGEX;
-use noelware_config::{env, merge::Merge, FromEnv};
+use azalia::config::{env, merge::Merge, FromEnv};
+use azalia::TRUTHY_REGEX;
 use serde::{Deserialize, Serialize};
 use tracing::Level;
 
 #[derive(Debug, Clone, Merge, Serialize, Deserialize)]
 pub struct Config {
-    /// Configures the log level of the Ume server's logging capabilities. The higher the level, the more verbose
+    /// Configures the log level of the Hazel server's logging capabilities. The higher the level, the more verbose
     /// messages you'll get. For production environments, the default (`INFO`) is fine.
-    #[serde(with = "noelware_serde::tracing")]
+    #[serde(with = "azalia::serde::tracing")]
     #[merge(strategy = __merge_level)]
     pub level: Level,
 
     /// whether or not emit the log information as JSON blobs or not.
     #[serde(default)]
-    #[merge(strategy = noelware_config::merge::strategy::bool::only_if_falsy)]
+    #[merge(strategy = azalia::config::merge::strategy::bool::only_if_falsy)]
     pub json: bool,
 }
 
@@ -47,7 +47,7 @@ impl FromEnv for Config {
     fn from_env() -> Self::Output {
         Config {
             json: env!("HAZEL_LOG_JSON", |val| TRUTHY_REGEX.is_match(&val); or false),
-            level: env!("HAZEL_LOG_LEVEL", |val| match val.to_lowercase().as_str() {
+            level: env!("HAZEL_LOG_LEVEL", |val| match &*val.to_ascii_lowercase() {
                 "trace" => Level::TRACE,
                 "debug" => Level::DEBUG,
                 "error" => Level::ERROR,

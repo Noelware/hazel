@@ -12,11 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-let
-  lockfile = builtins.fromJSON (builtins.readFile ./flake.lock);
-  compat = builtins.fetchTarball {
-    url = "https://github.com/edolstra/flake-compat/archive/${lockfile.nodes.flake-compat.locked.rev}.tar.gz";
-    sha256 = "${lockfile.nodes.flake-compat.locked.narHash}";
-  };
-in
-  (import compat {src = ./.;}).shellNix.default
+
+failure-threshold: error
+trustedRegistries:
+    - docker.noelware.org
+    - docker.io
+ignored:
+    - DL3018 # Pin versions in `apk add`.

@@ -1,4 +1,4 @@
-# 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+# 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 # Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

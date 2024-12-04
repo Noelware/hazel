@@ -1,4 +1,4 @@
-// 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+// 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 // Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use azalia::config::{env, merge::Merge, TryFromEnv};
 use eyre::Context;
-use noelware_config::{env, merge::Merge, TryFromEnv};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -45,13 +45,13 @@ impl TryFromEnv for Config {
 
     fn try_from_env() -> Result<Self::Output, Self::Error> {
         Ok(Config {
-            cert_key: env!("UME_SERVER_SSL_CERT_KEY")
+            cert_key: env!("HAZEL_SERVER_SSL_CERT_KEY")
                 .map(PathBuf::from)
-                .context("unable to load up `UME_SERVER_SSL_CERT_KEY` env")?,
+                .context("unable to load up `HAZEL_SERVER_SSL_CERT_KEY` env")?,
 
-            cert: env!("UME_SERVER_SSL_CERT")
+            cert: env!("HAZEL_SERVER_SSL_CERT")
                 .map(PathBuf::from)
-                .context("unable to load up `UME_SERVER_SSL_CERT` env")?,
+                .context("unable to load up `HAZEL_SERVER_SSL_CERT` env")?,
         })
     }
 }

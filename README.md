@@ -1,34 +1,33 @@
-# 🪶 hazel
-> *Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints*
+<div align="center">
+    <h3>🪶 <code>hazel</code></h3>
+    <h4>Easy to use read-only proxy to map objects to URLs</h4>
+    <hr />
+</div>
 
-**hazel** is Noelware's HTTP proxy microservice to proxy all our storage provider items from our [Amazon S3](https://s3.amazonaws.com) to the web easily, reliability, and fast.
+Hazel is Noelware's microservice to proxy our objects that we publish (like `artifacts.noelware.org` for all binary artifacts) to URLs that are mapped by their object storage location.
 
-The following domains point to hazel directly:
-
-- [artifacts.noelware.cloud](https://artifacts.noelware.cloud)
-- [artifacts.floofy.dev](https://artifacts.floofy.dev)
-- [cdn.noelware.cloud](https://cdn.noelware.cloud)
-- [maven.noelware.org](https://maven.noelware.org)
-- [maven.floofy.dev](https://maven.floofy.dev)
-- [cdn.floofy.dev](https://cdn.floofy.dev)
-
-**hazel** is a graduated Noelware project, it was originally owned and created by [Noel](https://floofy.dev), but is still maintained by him!
+**Hazel** was originally maintained only by [Noel Towa](https://floofy.dev) but now is maintained and controlled by the Noelware team.
 
 ## Installation
+### Install Script
+**WARNING** -- Please install the scripts first and audit them before running.
+
+```shell
+# Unix:
+$ curl -fsSL https://i.noelware.org/hazel | sh -
+
+# Windows:
+$ irm https://i.noelware.org/hazel.ps1 | iex
+```
+
 ### Docker
-Using **Docker** is the easist and recommended way to launch a Hazel server instantly with minimal configuration. Before you do, you will need [Docker](https://docker.com) installed on your machine. Then, you can pull the [noelware/hazel](https://cr.noelware.cloud/-/noelware/hazel) image.
+Running Hazel as a Docker container is the most recommended way to run the Hazel server with minimal configuration for smaller deployments. You can pull the `docker.noelware.org/noelware/hazel` image to run the Hazel server.
 
 The image can consist with multiple tags for styles on how to deploy to your environment. We typically build the Hazel images with `linux/amd64` and `linux/arm64` architectures. Windows containers is not planned at the moment.
 
-- `latest`, `nightly` - Uses a specific channel to pull the image from. It is recommended to use the `latest` tag if you wish to use the latest, stable version of Hazel, otherwise, if you want to go in the dark, use the `nightly` tag.
+- `latest` - Uses a specific channel to pull the image from. `latest` will be the latest stable version, `beta` will be the latest beta version.
 
 - `alpine` - This tag will use [Alpine](https://hub.docker.com/_/alpine) as the base image due to its low size to make Hazel run on low systems without a lot of system resources.
-
-- `{version}`, `{version}-nightly` - These tags will use a specific version of Hazel to run on. The `-nightly` suffix is for nightly builds, nightly builds are unstable and can lead into bugs.
-
-- `{version}-alpine`, `{version}-nightly-alpine` - These tags will use a pinned version of Hazel, but use [Alpine](https://hub.docker.com/_/alpine) base image instead.
-
-Now, if you wish to use the local filesystem for Hazel, it is recommended to create a Docker volume using the `docker volume` command or with a local path, which can be any path like `~/.local/containers/hazel`.
 
 > [!NOTE]
 > Hazel only holds persistence over files that are served from the local filesystem. If you wish to use
@@ -50,6 +49,37 @@ Now, if you wish to use the local filesystem for Hazel, it is recommended to cre
 > $ chown -R 1001:1001 <directory>
 > ```
 
+Now, we can pull the image from [Noelware's Container Registry](https://docker.noelware.org):
+
+```shell
+$ docker pull docker.noelware.org/noelware/hazel
+```
+
+Now, we can run the container!
+
+```shell
+# Using -v is an optional step if you're not using the local filesystem.
+$ docker run -d -p 8989:8989 --name hazel \
+    -e HAZEL_SERVER_NAME=my-hazel-instance \
+    -v /var/lib/noelware/hazel/data:my-volume \
+    docker.noelware.org/noelware/hazel
+```
+
+### Helm Chart
+Refer to the [`Noelware/helm-charts`](https://github.com/Noelware/helm-charts/tree/master/charts/noelware/hazel) repository for more information.
+
+### NixOS
+On a NixOS machine, you can use the [`nixpkgs-noelware`] overlay to install a Hazel server on a NixOS server:
+
+```nix
+{
+    services.hazel.enable = true;
+}
+```
+
+It'll use a filesystem mapping in `/var/lib/noelware/hazel/data`, but can be overwritten with `services.hazel.fsPath`.
+
+<!--
 Now, we can pull the image from [Noelware's Container Registry](https://cr.noelware.cloud):
 
 ```shell
@@ -102,4 +132,4 @@ If you read both if you're a new time contributor, now you can do the following:
 - Submit a Pull Request and then cry! ｡･ﾟﾟ･(థ Д థ。)･ﾟﾟ･｡
 
 ## License
-**hazel** is released under the **Apache 2.0** License and with love :purple_heart: by [Noelware](https://noelware.org). :3
+Hazel is released under the **Apache 2.0** License and with love :purple_heart: by [Noelware](https://noelware.org). :3

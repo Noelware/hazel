@@ -1,4 +1,4 @@
-// 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+// 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 // Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,63 +13,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod config;
+pub mod server;
+
 #[macro_use]
 extern crate tracing;
 
 #[macro_use]
 extern crate eyre;
 
-pub mod config;
-pub mod server;
+use std::sync::OnceLock;
 
-/// Generic [`Regex`] implementation for possible truthy boolean values.
-pub static TRUTHY_REGEX: once_cell::sync::Lazy<regex::Regex> =
-    once_cell::sync::Lazy::new(|| regex::Regex::new(r#"^(yes|true|si*|e|enable|1)$"#).unwrap());
-
-/// Constant that refers to the version of the Rust compiler that was used. This is mainly
-/// for diagnostics and is never accessed by third parties.
+/// Returns the `rustc` version that Hazel was compiled on. Mainly used for diagnostics.
 pub const RUSTC: &str = env!("HAZEL_RUSTC_VERSION");
 
-/// Constant in the format of [RFC3339] date format that refers to when `hazel` was last built
+/// Timestamp in the [RFC3339] format of when this `hazel` binary was built at.
 ///
 /// [RFC3339]: https://www.rfc-editor.org/rfc/rfc3339
-pub const BUILD_DATE: &str = env!("HAZEL_BUILD_DATE");
+pub const BUILD_TIMESTAMP: &str = env!("HAZEL_BUILD_TIMESTAMP");
 
 /// Constant that refers to the Git commit hash from the [canonical repository]
 ///
 /// [canonical repository]: https://github.com/Noelware/hazel
-pub const COMMIT_HASH: &str = env!("HAZEL_COMMIT_HASH");
+pub const COMMIT_HASH: Option<&str> = option_env!("HAZEL_GIT_COMMIT");
 
 /// Constant that refers to the version of the `hazel` software
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Returns a formatted version of `v2.0.0+d1cebae` or `v2.0.0` if no commit hash
-/// was found.
-///
-/// This will return a immutable string slice as the version, and since it could possibly
-/// be mutated, we advise to only use it in immutable contexts; never try to mutate it.
-#[inline(always)]
-#[allow(unknown_lints, static_mut_refs)]
+#[inline]
 pub fn version() -> &'static str {
-    static ONCE: std::sync::Once = std::sync::Once::new();
-    static mut VERSION: String = String::new();
+    static ONCE: OnceLock<String> = OnceLock::new();
+    ONCE.get_or_init(|| {
+        use std::fmt::Write;
 
-    // Safety: `VERSION` is only mutated on the first call of `version` and is never
-    //         mutated again afterwards.
-    unsafe {
-        ONCE.call_once(move || {
-            use std::fmt::Write;
+        let mut buf = String::new();
+        write!(buf, "{}", VERSION).unwrap();
 
-            let mut buf = String::new();
-            write!(buf, "{}", crate::VERSION).unwrap();
+        if let Some(hash) = COMMIT_HASH {
+            write!(buf, "+{}", hash).unwrap();
+        }
 
-            if crate::COMMIT_HASH != "d1cebae" {
-                write!(buf, "+{}", crate::COMMIT_HASH).unwrap();
-            }
-
-            VERSION = buf;
-        });
-
-        &VERSION
-    }
+        buf
+    })
 }

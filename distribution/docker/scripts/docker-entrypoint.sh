@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+# 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 # Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ set -o pipefail
 if ! [[ "${HAZEL_ENABLE_WELCOME_PROMPT:-yes}" =~ ^(no|false|0)$ ]]; then
   info ""
   info "  Welcome to the ${BOLD}Hazel${RESET} container image."
-  info "  🪶 Minimal, and fast HTTP proxy to host files from any cloud storage provider."
+  info "  🪶 Easy to use read-only proxy to map objects to URLs"
   info ""
   info "  * Subscribe to the project for updates:        https://github.com/Noelware/hazel"
   info "  * Any issues occur? Report it to us at GitHub: https://github.com/Noelware/hazel/issues"

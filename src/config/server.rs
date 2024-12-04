@@ -1,4 +1,4 @@
-// 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+// 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 // Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
 
 pub mod ssl;
 
-use crate::TRUTHY_REGEX;
-use noelware_config::{env, merge::Merge, TryFromEnv};
+use azalia::config::{env, merge::Merge, TryFromEnv};
+use azalia::TRUTHY_REGEX;
 use serde::{Deserialize, Serialize};
 use std::{env::VarError, net::SocketAddr};
 
@@ -123,5 +123,5 @@ fn __default_host() -> String {
 
 #[inline]
 fn __default_port() -> u16 {
-    8901
+    3621
 }

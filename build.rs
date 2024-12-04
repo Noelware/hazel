@@ -1,4 +1,4 @@
-// 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+// 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 // Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,44 +18,39 @@ use std::{process::Command, time::SystemTime};
 use which::which;
 
 fn main() {
-    // if build.rs changes in any way, then re-run it!
-    println!("cargo:rerun-if-changed=build.rs");
+    // Rerun the build script if the script ever changes at all.
+    println!("cargo::rerun-if-changed=build.rs");
 
-    let rust_version = rustc_version::version()
-        .expect("unable to get 'rustc' version")
-        .to_string();
+    // Collect the current `rustc` version so we can use it for diagnostics. Since,
+    // other distributors can use different versions than what we use (`rust-toolchain.toml`).
+    let rustver = rustc_version::version().unwrap().to_string();
+    println!("cargo::rustc-env=HAZEL_RUSTC_VERSION={rustver}");
 
-    println!("cargo:rustc-env=HAZEL_RUSTC_VERSION={rust_version}");
+    // Collect the build timestamp
+    let build_timestamp = Into::<DateTime<Utc>>::into(SystemTime::now()).to_rfc3339();
+    println!("cargo::rustc-env=HAZEL_BUILD_TIMESTAMP={build_timestamp}");
 
-    let build_date = {
-        let now = SystemTime::now();
-        let date: DateTime<Utc> = now.into();
-
-        date.to_rfc3339()
-    };
-
-    println!("cargo:rustc-env=HAZEL_BUILD_DATE={build_date}");
-
-    // First, we need to get the Git commit hash. There is ways we can do it:
-    //      1. Use `git rev-parse --short=8 HEAD`, if `git` exists
-    //      2. fuck it and ball with `d1cebae` as the dummy hash
+    // Detect the Git commit where this seoul build is coming from. Other distributors
+    // might not want to pull Seoul via Git, so this can be omitted.
     match which("git") {
         Ok(git) => {
             let mut cmd = Command::new(git);
             cmd.args(["rev-parse", "--short=8", "HEAD"]);
 
             let output = cmd.output().expect("to succeed");
-            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            println!("cargo:rustc-env=HAZEL_COMMIT_HASH={stdout}");
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if !stdout.is_empty() {
+                let hash = stdout.trim();
+                println!("cargo::rustc-env=HAZEL_GIT_COMMIT={hash}");
+            } else {
+                println!("cargo::warning=empty commit hash, empty git dir maybe?");
+            }
         }
 
         Err(which::Error::CannotFindBinaryPath) => {
-            println!("cargo:warning=missing `git` binary, using `d1cebae` as the commit hash instead");
-            println!("cargo:rustc-env=HAZEL_COMMIT_HASH=d1cebae");
+            println!("cargo::warning=`git` binary missing, therefore cannot get commit hash")
         }
 
-        Err(e) => {
-            panic!("failed to get `git` from `$PATH`: {e}");
-        }
+        Err(err) => panic!("unable to get `git` binary from system `$PATH`: {err}"),
     }
 }

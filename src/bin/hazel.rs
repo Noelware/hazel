@@ -1,4 +1,4 @@
-// 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+// 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 // Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hazel::config::{storage, Config};
-use noelware_config::env;
-use noelware_log::{writers, WriteLayer};
-use noelware_remi::StorageService;
-use owo_colors::{OwoColorize, Stream};
-use remi::StorageService as _;
+use azalia::{
+    config::env,
+    log::{writers, WriteLayer},
+    remi::StorageService,
+};
+use hazel::{
+    config::{storage, Config},
+    server,
+};
+use mimalloc::MiMalloc;
 use sentry::{types::Dsn, ClientOptions};
 use std::{
     borrow::Cow,
@@ -26,16 +30,14 @@ use std::{
     str::FromStr,
     sync::atomic::{AtomicUsize, Ordering},
 };
-use tokio::runtime::Builder;
-use tracing::{info, level_filters::LevelFilter, trace};
-use tracing_subscriber::{layer::SubscriberExt, prelude::*, Layer};
+use tracing::{info, level_filters::LevelFilter};
+use tracing_subscriber::prelude::*;
 
 #[global_allocator]
-static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+static GLOBAL: MiMalloc = MiMalloc;
 
 fn main() -> eyre::Result<()> {
-    let _ = dotenvy::dotenv();
-    color_eyre::install()?;
+    dotenvy::dotenv().unwrap_or_default();
 
     let workers = cmp::max(
         num_cpus::get(),
@@ -46,7 +48,7 @@ fn main() -> eyre::Result<()> {
         },
     );
 
-    let rt = Builder::new_multi_thread()
+    let rt = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(workers)
         .thread_name_fn(|| {
             static ID: AtomicUsize = AtomicUsize::new(0);
@@ -61,15 +63,10 @@ fn main() -> eyre::Result<()> {
 }
 
 async fn real_main() -> eyre::Result<()> {
-    println!(
-        "» Booting up {} v{}, compiled on Rust {}",
-        "hazel".if_supports_color(Stream::Stderr, |x| x.bold()),
-        hazel::version().if_supports_color(Stream::Stderr, |x| x.bold()),
-        hazel::RUSTC.if_supports_color(Stream::Stderr, |x| x.bold())
-    );
-
     let config = Config::new()?;
-    let _sentry_guard = sentry::init(ClientOptions {
+    color_eyre::install()?;
+
+    let _guard = sentry::init(ClientOptions {
         traces_sample_rate: 0.5,
         attach_stacktrace: true,
         server_name: Some(
@@ -83,7 +80,7 @@ async fn real_main() -> eyre::Result<()> {
         dsn: config
             .sentry_dsn
             .as_ref()
-            .map(|x| Dsn::from_str(x).expect("to have a valid Sentry DSN")),
+            .map(|x| Dsn::from_str(x).expect("failed to parse sentry dsn")),
 
         ..Default::default()
     });
@@ -91,7 +88,7 @@ async fn real_main() -> eyre::Result<()> {
     tracing_subscriber::registry()
         .with(
             match config.logging.json {
-                false => WriteLayer::new_with(io::stdout(), writers::default),
+                false => WriteLayer::new_with(io::stdout(), writers::default::Writer::default()),
                 true => WriteLayer::new_with(io::stdout(), writers::json),
             }
             .with_filter(LevelFilter::from_level(config.logging.level))
@@ -105,17 +102,24 @@ async fn real_main() -> eyre::Result<()> {
         .with(tracing_error::ErrorLayer::default())
         .init();
 
-    info!("Bootstrapped Hazel system successfully");
-    trace!("determining data storage to use...");
+    info!(
+        "init Hazel :: {} (built @ {}) with Rust {}",
+        hazel::version(),
+        hazel::BUILD_TIMESTAMP,
+        hazel::RUSTC
+    );
 
     let storage = match config.storage.clone() {
-        storage::Config::Filesystem(fs) => StorageService::Filesystem(remi_fs::StorageService::with_config(fs)),
-        storage::Config::Azure(azure) => StorageService::Azure(remi_azure::StorageService::new(azure)),
-        storage::Config::S3(s3) => StorageService::S3(remi_s3::StorageService::new(s3)),
+        storage::Config::Filesystem(fs) => {
+            StorageService::Filesystem(azalia::remi::fs::StorageService::with_config(fs))
+        }
+
+        storage::Config::Azure(azure) => StorageService::Azure(azalia::remi::azure::StorageService::new(azure)?),
+        storage::Config::S3(s3) => StorageService::S3(azalia::remi::s3::StorageService::new(s3)),
     };
 
-    storage.init().await?;
-    info!("Initialized data storage successfully!");
+    <StorageService as azalia::remi::core::StorageService>::init(&storage).await?;
+    info!("data storage has been initialized");
 
-    hazel::server::start(storage, config).await
+    server::start(storage, config).await
 }

@@ -1,4 +1,4 @@
-# 🪶 hazel: Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints
+# 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
 # Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,34 +13,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM rust:1.79-slim-bullseye AS build
+FROM rustlang/rust:nightly-bookworm-slim AS build
 
-RUN DEBIAN_FRONTEND=noninteractive apt update && DEBIAN_FRONTEND=noninteractive apt install -y git ca-certificates curl pkg-config libssl-dev
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get upgrade &&   \
+    apt-get update -y && \
+    apt-get install -y git \
+        curl               \
+        ca-certificates    \
+        pkg-config         \
+        libssl-dev         \
+        mold
+
 WORKDIR /build
-
-ENV CARGO_INCREMENTAL=0
-
 COPY . .
-RUN cargo build --release
 
-FROM debian:bullseye-slim
+ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold -C target-cpu=native"
+RUN cargo build --release --locked
 
-RUN DEBIAN_FRONTEND=noninteractive apt update && DEBIAN_FRONTEND=noninteractive apt install -y bash tini curl
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get upgrade &&   \
+    apt-get update -y && \
+    apt-get install -y curl bash tini
+
 WORKDIR /app/noelware/hazel
 
 COPY --from=build /build/target/release/hazel /app/noelware/hazel/bin/hazel
-COPY              distribution/docker/scripts /app/noelware/hazel/scripts
-COPY              distribution/docker/config  /app/noelware/hazel/config
+COPY distribution/docker/scripts              /app/noelware/hazel/scripts
+COPY distribution/docker/config               /app/noelware/hazel/config
 
 RUN mkdir -p /var/lib/noelware/hazel/data
 RUN groupadd -g 1001 noelware && \
     useradd -rm -s /bin/bash -g noelware -u 1001 noelware && \
     chown 1001:1001 /app/noelware/hazel && \
     chown 1001:1001 /var/lib/noelware/hazel/data && \
-    chmod +x /app/noelware/hazel/scripts/docker-entrypoint.sh
+    chmod +x /app/noelware/hazel/bin/hazel /app/noelware/hazel/scripts/docker-entrypoint.sh
 
-ENV HAZEL_DISTRIBUTION_KIND=docker
-EXPOSE 3939
+EXPOSE 8989
 VOLUME /var/lib/noelware/hazel/data
 
 USER noelware
