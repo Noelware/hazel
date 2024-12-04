@@ -47,11 +47,12 @@ permissions:
     checks: write
 jobs:
     rust:
-        name: Rust CI
-        runs-on: ubuntu-latest
+        name: Rust [${{matrix.runner}}]
+        runs-on: ${{matrix.runner}}
         strategy:
             matrix:
                 rust-version: [stable, nightly]
+                runner: [windows-latest, macos-latest, ubuntu-latest]
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
