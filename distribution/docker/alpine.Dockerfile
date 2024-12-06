@@ -31,7 +31,7 @@ ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold -C target-cpu=native -C target-feature=
 RUN cargo build --release --locked
 
 ##### FINAL STAGE
-FROM alpine:3.20
+FROM alpine:3.21
 
 RUN apk upgrade && apk add --no-cache bash tini curl libgcc
 
