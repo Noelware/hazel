@@ -23,7 +23,7 @@ homepage = "https://noelware.org/oss/hazel"
 documentation = "https://docs.noelware.org/hazel/current"
 
 [dependencies]
-axum = { version = "0.7.9", features = ["macros"] }
+axum = { version = "0.8.0", features = ["macros"] }
 axum-server = { version = "0.7.1", features = ["tls-rustls"] }
 color-eyre = "0.6.3"
 dotenvy = "0.15.7"
