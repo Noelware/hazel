@@ -31,9 +31,9 @@ eyre = "0.6.12"
 mimalloc = "0.1.43"
 num_cpus = "1.16.0"
 rand = "0.9.0"
-sentry = "0.37.0"
-sentry-tower = { version = "0.37.0", features = ["http", "axum"] }
-sentry-tracing = "0.37.0"
+sentry = "0.38.0"
+sentry-tower = { version = "0.38.0", features = ["http", "axum"] }
+sentry-tracing = "0.38.0"
 serde = "1.0.215"
 serde_json = "1.0.133"
 tokio = { version = "1.41.1", features = ["rt", "rt-multi-thread", "signal"] }
