@@ -32,6 +32,10 @@ targets = [
 #
 # See also: https://github.com/EmbarkStudios/cargo-deny/pull/611
 version = 2
+ignore = [
+    # there is no safe way to ignore `paste`.
+    "RUSTSEC-2024-0436"
+]
 
 [bans]
 multiple-versions = "warn" # only warn since `tonic` doesn't support Axum 0.7 / Hyper 1
@@ -39,7 +43,7 @@ wildcards = "deny"
 
 [sources]
 unknown-registry = "deny"
-unknown-git = "allow"     # only for Noelware/core-rs
+unknown-git = "deny"
 
 [licenses]
 # Similar to advisories, opt in to version 2.
@@ -50,16 +54,13 @@ allow = [
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
     "MIT",
-    "MPL-2.0",
     "BSD-3-Clause",
     "ISC",
+    "Zlib",
+    "Unicode-3.0"
 ]
 exceptions = [
-    # unicode-ident includes data generated from Unicode Character Database
-    # which is licensed under Unicode-DFS-2016.
-    # See https://github.com/dtolnay/unicode-ident/pull/4
-    { name = "unicode-ident", allow = ["Unicode-DFS-2016"] },
-    { name = "ring", allow = ["OpenSSL"] },
+    { name = "aws-lc-sys", allow = ["OpenSSL"] }
 ]
 
 # Sigh

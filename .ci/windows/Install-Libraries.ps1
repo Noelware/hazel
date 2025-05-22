@@ -13,15 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[toolchain]
-channel = "nightly-2025-05-21"
-profile = "minimal"
-components = [
-    "rustc",
-    "cargo",
-    "rust-analyzer",
-    "rust-src",
-    "rust-std",
-    "clippy",
-    "rustfmt",
-]
+
+$ErrorActionPreference = "Stop"
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+. "$PSScriptRoot\..\_shared.ps1"
+
+StartGroup "Installing system libraries..."
+Write-Host "$ vcpkg --triplet x64-windows-static-md install openssl"
+vcpkg --triplet x64-windows-static-md install openssl
+EndGroup

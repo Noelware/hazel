@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+#
+# 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
+# Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -eou pipefail
+
+source "$(cd "$(dirname $0)" && pwd)/../_shared.sh"
+
+buildtarget=${BUILDTARGET:-}
+buildflags=${BUILDFLAGS:-}
+cargoflags=${CARGOFLAGS:-}
+rustflags=${RUSTFLAGS:-}
+cargo=${CARGO:-cargo}
+root="$(cd "$(dirname $0)/../.." && pwd)"
+
+arch=""
+if noelware::arch::x86_64; then
+    arch="x86_64"
+fi
+
+if noelware::arch::aarch64; then
+    arch="aarch64"
+fi
+
+build() {
+    if ! command -v "$cargo" >/dev/null; then
+        echo "~> Missing any Cargo binary (defined as \`\$CARGO\` - $cargo)"
+        exit 1
+    fi
+
+    export RUSTFLAGS="-Ctarget-cpu=native $rustflags"
+
+    ! [ -d "$root/.result" ] && mkdir -p "$root/.result"
+
+    noelware::startGroup "Build / macOS ($arch)"
+
+    echo "~> Performing compilation of binary \`hazel\`"
+    echo "   $ RUSTFLAGS=\"$RUSTFLAGS\" $cargo $cargoflags build --release --locked --target $buildtarget --bin hazel $buildflags"
+
+    "$cargo $cargoflags build --release --locked --bin hazel $buildflags"
+    if [ $? -ne 0 ]; then
+        exit $?
+    fi
+
+    pushd "$root/.result" >/dev/null
+
+    echo "$ mv $root/target/$buildtarget/release/hazel $root/.result/hazel-darwin-$arch"
+    mv "$root/target/$buildtarget/release/hazel" "$root/.result/hazel-darwin-$arch"
+
+    echo "Generating checksums for binary"
+    shasum -a 256 "hazel-darwin-$arch" > ./"hazel-darwin-$arch.sha256"
+
+    popd
+
+    echo "~> Finished! All resources will be in [$root/.result]~!"
+
+    noelware::endGroup
+}
+
+build

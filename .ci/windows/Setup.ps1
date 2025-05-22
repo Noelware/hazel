@@ -13,15 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[toolchain]
-channel = "nightly-2025-05-21"
-profile = "minimal"
-components = [
-    "rustc",
-    "cargo",
-    "rust-analyzer",
-    "rust-src",
-    "rust-std",
-    "clippy",
-    "rustfmt",
-]
+$ErrorActionPreference = "Stop"
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+. "$PSScriptRoot\..\_shared.ps1"
+
+Write-Host "$ Setup \`VCPKG_ROOT\` environment variable -> $env:VCPKG_INSTALLATION_ROOT"
+Write-Output "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append

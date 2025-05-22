@@ -13,15 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[toolchain]
-channel = "nightly-2025-05-21"
-profile = "minimal"
-components = [
-    "rustc",
-    "cargo",
-    "rust-analyzer",
-    "rust-src",
-    "rust-std",
-    "clippy",
-    "rustfmt",
-]
+function IsContinousIntegration {
+    return $null -ne $env:CI || IsGitHubActions
+}
+
+function IsGitHubActions {
+    return $null -ne $env:GITHUB_ACTIONS
+}
+
+function StartGroup {
+    Param(
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Label
+    )
+
+    if (IsGitHubActions) {
+        Write-Host "::group::$Label"
+    } else {
+        Write-Host "~>     $label"
+    }
+}
+
+function EndGroup {
+    if (IsGitHubActions) {
+        Write-Host "::endgroup::"
+    }
+}

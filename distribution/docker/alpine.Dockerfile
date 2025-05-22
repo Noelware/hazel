@@ -14,21 +14,39 @@
 # limitations under the License.
 
 ###### BINARY BUILD
-FROM rustlang/rust:nightly-alpine3.20 AS build
+FROM rustlang/rust:nightly-alpine3.21 AS build
 
-RUN apk upgrade && apk add --no-cache git \
-    mold                                  \
-    ca-certificates                       \
-    musl-dev                              \
-    pkgconfig                             \
-    openssl-dev                           \
+RUN apk upgrade && apk add --no-cache \
+    git                               \
+    mold                              \
+    ca-certificates                   \
+    musl-dev                          \
+    openssl-dev                       \
+    pkgconfig                         \
     build-base
 
 WORKDIR /build
 COPY . .
 
-ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold -C target-cpu=native -C target-feature=-crt-static"
-RUN cargo build --release --locked
+# We want to use the Nightly toolchain that is provided by the image
+# itself and not what we have (this will eliminate most of the `components`
+# section, which is fine since we don't need them for a simple build)
+RUN rm rust-toolchain.toml
+
+# We also need `rust-src` so we can build `libstd` as well.
+RUN rustup component add rust-src
+
+# It might be a bad choice but we decided to not opt into `cargo-chef` since
+# releases aren't being pushed as frequently so cache will be stale either way
+# and the compute we have *should* not take 5-6 hours.
+ENV RUSTFLAGS="--cfg tokio_unstable -Clink-arg=-fuse-ld=mold -Ctarget-cpu=native -Ctarget-feature=-crt-static"
+RUN cargo build                                                               \
+    -Z build-std=std,panic_abort                                              \
+    -Z build-std-features="optimize_for_size,panic_immediate_abort,backtrace" \
+    --locked                                                                  \
+    --release                                                                 \
+    --no-default-features                                                     \
+    --bin hazel
 
 ##### FINAL STAGE
 FROM alpine:3.21

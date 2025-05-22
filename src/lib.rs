@@ -47,10 +47,10 @@ pub fn version() -> &'static str {
         use std::fmt::Write;
 
         let mut buf = String::new();
-        write!(buf, "{}", VERSION).unwrap();
+        write!(buf, "{VERSION}").unwrap();
 
         if let Some(hash) = COMMIT_HASH {
-            write!(buf, "+{}", hash).unwrap();
+            write!(buf, "+{hash}").unwrap();
         }
 
         buf

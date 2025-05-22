@@ -12,40 +12,65 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-{pkgs}:
-with pkgs; let
-  rust-toolchain = rust-bin.fromRustupToolchainFile ../rust-toolchain.toml;
+{
+  rust-bin,
+  pkg-config,
+  mold,
+  lldb,
+  darwin,
+  stdenv,
+  mkShell,
+  lib,
+  cargo-machete,
+  cargo-deny,
+  cargo-expand,
+  openssl,
+  curl,
+  git,
+  glibc,
+  powershell,
+}: let
+  darwinNativeBuildInputs = with darwin.apple_sdk.frameworks; [
+    SystemConfiguration
+    CoreFoundation
+    Security
+  ];
+
+  linuxNativeBuildInputs = [mold lldb];
+
+  nativeBuildInputs =
+    [pkg-config]
+    ++ (lib.optional stdenv.isLinux linuxNativeBuildInputs)
+    ++ (lib.optional stdenv.isDarwin darwinNativeBuildInputs);
+
+  buildInputs =
+    [
+      cargo-machete
+      cargo-expand
+      cargo-deny
+
+      (rust-bin.fromRustupToolchainFile ../rust-toolchain.toml)
+      powershell # for writing CI scripts for Windows
+      openssl
+      curl
+      git
+    ]
+    ++ (lib.optional stdenv.isLinux [glibc]);
 in
   mkShell {
-    nativeBuildInputs =
-      [pkg-config]
-      ++ (lib.optional stdenv.isLinux [mold lldb])
-      ++ (lib.optional stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
-        CoreFoundation
-        Security
-        SystemConfiguration
-      ]));
+    inherit nativeBuildInputs buildInputs;
 
-    buildInputs =
-      [
-        cargo-machete
-        cargo-expand
-        cargo-deny
+    LD_LIBRARY_PATH = lib.makeLibraryPath [openssl];
 
-        rust-toolchain
-        openssl
-        curl
-        git
-      ]
-      ++ (lib.optional stdenv.isLinux [glibc]);
-
+    name = "hazel-dev";
     shellHook = ''
+      oldRustflags=''${RUSTFLAGS:-}
       export RUSTFLAGS="${
         if stdenv.isLinux
-        then "-C link-arg=-fuse-ld=mold -C target-cpu=native"
+        then ''
+          -Clink-arg=-fuse-ld=mold -Ctarget-cpu=native
+        ''
         else ""
-      } $RUSTFLAGS"
-
-      export LD_LIBRARY_PATH="${lib.makeLibraryPath [openssl]}"
+      } $oldRustflags"
     '';
   }

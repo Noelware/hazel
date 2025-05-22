@@ -15,12 +15,12 @@
 
 use crate::config::Config;
 use axum::{
+    Extension,
     body::Body,
     extract::{FromRequestParts, MatchedPath, Request},
-    http::{header::USER_AGENT, Extensions, HeaderMap, HeaderValue, Method, Uri, Version},
+    http::{Extensions, HeaderMap, HeaderValue, Method, Uri, Version, header::USER_AGENT},
     middleware::Next,
     response::IntoResponse,
-    Extension,
 };
 use rand::distr::{Alphanumeric, SampleString};
 use std::{fmt::Display, ops::Deref, time::Instant};
@@ -58,7 +58,11 @@ impl From<XRequestId> for HeaderValue {
     }
 }
 
-pub async fn request_id(Extension(config): Extension<Config>, mut req: Request<Body>, next: Next) -> impl IntoResponse {
+pub async fn request_id(
+    Extension(config): Extension<Config>,
+    mut req: Request<Body>,
+    next: Next,
+) -> impl IntoResponse {
     use std::fmt::Write;
 
     let id = XRequestId::generate();
@@ -66,7 +70,7 @@ pub async fn request_id(Extension(config): Extension<Config>, mut req: Request<B
 
     let mut server = String::from("Noelware/hazel");
     if let Some(ref name) = config.server_name {
-        write!(server, " [{}]", name).unwrap();
+        write!(server, " [{name}]").unwrap();
     }
 
     write!(server, " (+https://github.com/Noelware/hazel; v{})", crate::version()).unwrap();

@@ -22,222 +22,278 @@ permissions:
     packages: write
     contents: write
 jobs:
-    w:
-        runs-on: ubuntu-latest
-    # binary:
-    #     name: "Build `hazel` binary (${{matrix.runner}}: ${{matrix.target}})"
-    #     runs-on: ${{matrix.runner}}
-    #     strategy:
-    #         fail-fast: true
-    #         matrix:
-    #             include:
-    #                 # hazel (Linux x86_64)
-    #                 - runner: ubuntu-latest
-    #                   rustflags: "-Ctarget-cpu=native -Clink-arg=-fuse-ld=mold"
-    #                   target: x86_64-unknown-linux-gnu
-    #                   cross: false
-    #                   flags: ""
-    #                   ext: ''
+    binary:
+        name: "Build / ${{matrix.target}}"
+        runs-on: ${{matrix.runner}}
+        if: github.repository == 'Noelware/hazel'
+        env:
+            CARGOFLAGS: "-Zbuild-std=std,panic_abort -Zbuild-std-features=optimize_for_size,panic_immediate_abort,backtrace"
+        strategy:
+            fail-fast: true
+            matrix:
+                target: [
+                    x86_64-unknown-linux-gnu,  # Linux (x86_64)
+                    aarch64-unknown-linux-gnu, # Linux (aarch64)
+                    x86_64-apple-darwin,       # macOS (Intel)
+                    aarch64-apple-darwin,      # macOS (M1)
+                    x86_64-pc-windows-msvc     # Windows (x86_64)
+                ]
 
-    #                 # hazel (Linux ARM64)
-    #                 - runner: ubuntu-latest
-    #                   target: aarch64-unknown-linux-gnu
-    #                   rustflags: ''
-    #                   cross: true
-    #                   flags: ""
-    #                   ext: ''
+                include:
+                    - target: x86_64-unknown-linux-gnu
+                      runner: ubuntu-24.04
+                      buildflags: ""
+                      rustflags: "-Clink-arg=-fuse-ld=mold"
+                      cross: false
+                      ext: ""
 
-    #                 # hazel (macOS x86_64 ~ Intel)
-    #                 - runner: macos-latest
-    #                   target: x86_64-apple-darwin
-    #                   rustflags: "-Ctarget-cpu=native"
-    #                   cross: false
-    #                   flags: ""
-    #                   ext: ''
+                    - target: aarch64-unknown-linux-gnu
+                      runner: ubuntu-24.04
+                      buildflags: ""
+                      rustflags: "-Clink-arg=-fuse-ld=mold"
+                      cross: true
+                      ext: ""
 
-    #                 # hazel (macOS ARM64 ~ Apple Silicon)
-    #                 - runner: macos-latest
-    #                   target: aarch64-apple-darwin
-    #                   rustflags: ''
-    #                   cross: false
-    #                   flags: ""
-    #                   ext: ''
+                    - target: x86_64-apple-darwin
+                      runner: macos-13
+                      buildflags: ""
+                      rustflags: ""
+                      cross: false
+                      ext: ""
 
-    #                 # hazel (Windows x86_64)
-    #                 - runner: windows-latest
-    #                   target: x86_64-pc-windows-msvc
-    #                   rustflags: "-Ctarget-cpu=native"
-    #                   flags: ""
-    #                   cross: false
-    #                   ext: .exe
+                    - target: aarch64-apple-darwin
+                      runner: macos-latest
+                      buildflags: ""
+                      rustflags: ""
+                      cross: false
+                      ext: ""
+
+                    - target: x86_64-pc-windows-msvc
+                      runner: windows-latest
+                      buildflags: ""
+                      rustflags: ""
+                      cross: false
+                      ext: ""
+        steps:
+            - uses: actions/checkout@v4
+            - uses: auguwu/git-tag-action@v2
+              id: tag
+
+            - run: rm rust-toolchain.toml
+            - uses: dtolnay/rust-toolchain@nightly
+              with:
+                target: ${{matrix.target}}
+
+            - uses: taiki-e/cache-cargo-install-action@v2
+              if: matrix.cross
+              with:
+                tool: cross
+
+            - uses: rui314/setup-mold@v1
+              if: matrix.runner == 'ubuntu-24.04'
+
+            - uses: Swatinem/rust-cache@v2
+            - run: .ci/windows/Setup.ps1
+              if: matrix.runner == 'windows-latest'
+              id: vcpkg
+
+            - uses: actions/cache@v4
+              if: matrix.runner == 'windows-latest'
+              with:
+                key: vcpkg-cache
+                path: |
+                    ${{env.VCPKG_ROOT}}
+
+            - if: matrix.runner == 'windows-latest'
+              uses: ilammy/setup-nasm@v1
+
+            - name: Unix Build
+              if: matrix.runner != 'windows-latest'
+              run: .ci/${{contains(matrix.runner, 'apple-') && 'macos' || 'linux'}}/release
+              env:
+                BUILDFLAGS: "--target ${{matrix.target}} ${{matrix.buildflags}}"
+                CARGOFLAGS: ${{env.CARGOFLAGS}}
+                RUSTFLAGS: ${{matrix.rustflags}}
+                CARGO: ${{matrix.cross && 'cross' || 'cargo'}}
+
+            - name: Windows Build
+              if: matrix.runner == 'windows-latest'
+              run: .ci/windows/Release.ps1 -CargoFlags "${{env.CARGOFLAGS}}" -BuildFlags "${{matrix.buildflags}}"
+
+            - uses: softprops/action-gh-release@v2
+              with:
+                files: ./.result/hazel-*
+
+            - name: "Upload :: S3 (${{steps.tag.outputs.version}})"
+              uses: Noelware/s3-action@v2
+              with:
+                enforce-path-access-style: true
+                access-key-id: ${{secrets.S3_ACCESS_KEY}}
+                path-format: "$(prefix)/hazel/${{steps.tag.outputs.version}}/$(file)"
+                directories: .result
+                secret-key: ${{secrets.S3_SECRET_KEY}}
+                endpoint: ${{secrets.S3_ENDPOINT}}
+                prefix: /artifacts
+                region: us-east-1
+                bucket: noelware
+
+            - name: "Upload :: S3 (latest)"
+              uses: Noelware/s3-action@v2
+              with:
+                enforce-path-access-style: true
+                access-key-id: ${{secrets.S3_ACCESS_KEY}}
+                path-format: "$(prefix)/hazel/latest/$(file)"
+                directories: .result
+                secret-key: ${{secrets.S3_SECRET_KEY}}
+                endpoint: ${{secrets.S3_ENDPOINT}}
+                prefix: /artifacts
+                region: us-east-1
+                bucket: noelware
+    nix-build:
+        name: "Build / Nix"
+        runs-on: ubuntu-24.04
+        if: github.repository == 'Noelware/hazel'
+        steps:
+            - uses: actions/checkout@v4
+            - uses: cachix/install-nix-action@v31
+              with:
+                nix_path: nixpkgs=channel:nixos-unstable
+
+            - uses: cachix/cachix-action@v16
+              with:
+                name: noelware
+                authToken: ${{secrets.CACHIX_AUTH_TOKEN}}
+
+            - run: nix build .#hazel
+    docker:
+        name: "Docker / Build [${{matrix.kind}} (${{matrix.arch}})]"
+        runs-on: ubuntu-24.04
+        if: github.repository == 'Noelware/hazel'
+        outputs:
+            docker-meta: ${{steps.meta.outputs.json}}
+        strategy:
+            fail-fast: true
+            matrix:
+                kind: [alpine, debian]
+                arch: [x86_64, aarch64]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: auguwu/git-tag-action@v2
+              id: tag
+            - id: commit-hash
+              run: echo "commit=$(git rev-parse --short=8 $GITHUB_SHA)" >> $GITHUB_OUTPUT
+
+            - uses: docker/setup-buildx-action@v3
+            - uses: docker/login-action@v3
+              with:
+                registry: cr.noelware.cloud
+                username: noelbot
+                password: ${{secrets.NOEL_REGISTRY_PASSWORD}}
+
+            - uses: docker/metadata-action@v5
+              id: meta
+              with:
+                flavor: |
+                    latest=true
+                    suffix=${{matrix.kind == 'alpine' && 'alpine-' || ''}}${{matrix.arch == 'aarch64' && 'arm64' || 'amd64'}}
+                tags: |
+                    type=semver,pattern={{version}}
+                    type=semver,pattern={{major}}.{{minor}}
+                    type=semver,pattern={{major}}
+                images: |
+                    cr.noelware.cloud/noelware/hazel
+                labels: |
+                    org.opencontainers.image.title=Hazel
+                    org.opencontainers.image.description="🪶 Easy to use read-only proxy to map objects to URLs"
+                    org.opencontainers.image.version=${{steps.tag.outputs.version}}
+                    org.opencontainers.image.revision=${{steps.commit-hash.outputs.commit}}
+                    org.opencontainers.image.licenses=Apache-2.0
+                    org.opencontainers.image.documentation=https://docs.noelware.org/hazel/${{steps.tag.outputs.version}}
+                    org.opencontainers.image.source=https://github.com/Noelware/hazel/tree/${{steps.commit-hash.outputs.commit}}
+
+            - uses: docker/bake-action@v6
+              with:
+                targets: ${{matrix.kind}}-${{matrix.arch}}
+                provenance: true
+                push: true
+                files: |
+                    ./docker-bake.hcl
+                    cwd://${{steps.meta.outputs.bake-file}}
+
+    manifests:
+        name: "Docker / Manifests"
+        runs-on: ubuntu-24.04
+        if: github.repository == 'Noelware/hazel'
+        needs: [docker]
+        steps:
+            - uses: auguwu/git-tag-action@v2
+              id: tag
+            - uses: docker/setup-buildx-action@v3
+            - uses: docker/login-action@v3
+              with:
+                registry: cr.noelware.cloud
+                username: noelbot
+                password: ${{secrets.NOEL_REGISTRY_PASSWORD}}
+
+            - name: "Merge (cr.noelware.cloud/noelware/hazel:latest)"
+              uses: Noelware/docker-manifest-action@v1
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:latest-amd64,cr.noelware.cloud/noelware/hazel:latest-arm64
+                tags: cr.noelware.cloud/noelware/hazel:latest
+
+            - name: "Merge (cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}})"
+              uses: Noelware/docker-manifest-action@v1
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-arm64
+                tags: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}
+
+            - name: "Merge (cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}})"
+              uses: Noelware/docker-manifest-action@v1
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-arm64
+                tags: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}
+
+            - name: "Merge (cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}})"
+              uses: Noelware/docker-manifest-action@v1
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-arm64
+                tags: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}
+
+            - name: "Merge (cr.noelware.cloud/noelware/hazel:alpine)"
+              uses: Noelware/docker-manifest-action@v1
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:alpine-amd64,cr.noelware.cloud/noelware/hazel:alpine-arm64
+                tags: cr.noelware.cloud/noelware/hazel:alpine
+
+            - name: "Merge (cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine)"
+              uses: Noelware/docker-manifest-action@v1
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine-arm64
+                tags: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}-alpine
+
+            - name: "Merge (cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine)"
+              uses: Noelware/docker-manifest-action@v1
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine-arm64
+                tags: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}-alpine
+
+            - name: "Merge (cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine)"
+              uses: Noelware/docker-manifest-action@v1
+              with:
+                inputs: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine-amd64,cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine-arm64
+                tags: cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}-alpine
+    # sentry:
+    #     name: Sentry
+    #     runs-on: ubuntu-24.04
+    #     if: github.repository == 'Noelware/hazel'
     #     steps:
-    #         - name: Checkout source code
-    #           uses: actions/checkout@v4
-
-    #         - name: Get Git tag
-    #           uses: auguwu/git-tag-action@master
+    #         - uses: auguwu/git-tag-action@v2
     #           id: tag
-
-    #         - name: Remove `rust-toolchain.toml`
-    #           run: rm rust-toolchain.toml
-
-    #         - name: Setup Rust toolchain
-    #           uses: dtolnay/rust-toolchain@master
-    #           with:
-    #               toolchain: stable
-    #               components: clippy, rustfmt
-    #               target: ${{matrix.target}}
-
-    #         - name: Install `cross`
-    #           uses: taiki-e/cache-cargo-install-action@v2
-    #           if: matrix.cross
-    #           with:
-    #             tool: cross
-
-    #         - name: Install `mold` on Linux
-    #           if: matrix.runner == 'ubuntu-latest'
-    #           uses: rui314/setup-mold@v1
-
-    #         - name: Setup Rust cache
-    #           uses: Swatinem/rust-cache@v2
-
-    #         - name: Setup `VCPKG_ROOT` environment variable
-    #           if: matrix.runner == 'windows-latest'
-    #           id: vcpkg
-    #           run: |
-    #               echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
-    #               echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-
-    #         - name: Setup vcpkg cache
-    #           if: matrix.runner == 'windows-latest'
-    #           uses: actions/cache@v4
-    #           with:
-    #               key: vcpkg-cache
-    #               path: |
-    #                   ${{steps.vcpkg.outputs.VCPKG_ROOT}}
-
-    #         - name: Install OpenSSL on Windows with `vcpkg`
-    #           if: matrix.runner == 'windows-latest'
-    #           run: vcpkg install openssl:x64-windows-static-md
-
-    #         - name: Build binary
-    #           run: ./hack/release${{matrix.runner == 'windows-latest' && '.ps1' || '.sh'}}
+    #         - uses: getsentry/action-release@v3
     #           env:
-    #             BUILDTARGET: ${{matrix.target}}
-    #             BUILDFLAGS: ${{matrix.flags}}
-    #             RUSTFLAGS: ${{matrix.rustflags}}
-    #             CARGO: "${{matrix.cross && 'cross' || 'cargo'}}"
-
-    #         - name: Upload hazel artifacts
-    #           uses: softprops/action-gh-release@v2
+    #             SENTRY_AUTH_TOKEN: ${{secrets.SENTRY_AUTH_TOKEN}}
+    #             SENTRY_PROJECT: hazel
+    #             SENTRY_URL: https://sentry.noelware.org
     #           with:
-    #             files: ./.result/hazel-*
-
-    #         - name: Upload binary to S3 (${{steps.tag.outputs.version}})
-    #           uses: Noelware/s3-action@2.2.6
-    #           with:
-    #             enforce-path-access-style: true
-    #             access-key-id: ${{secrets.S3_ACCESS_KEY}}
-    #             secret-key: ${{secrets.S3_SECRET_KEY}}
-    #             path-format: $(prefix)/hazel/${{steps.tag.outputs.version}}/$(file)
-    #             directories: .result
-    #             endpoint: ${{secrets.S3_ENDPOINT}}
-    #             prefix: /noelware/artifacts
-    #             region: us-east-1
-    #             bucket: august
-
-    #         - name: Upload binary to S3 (latest)
-    #           uses: Noelware/s3-action@2.2.6
-    #           with:
-    #             enforce-path-access-style: true
-    #             access-key-id: ${{secrets.S3_ACCESS_KEY}}
-    #             secret-key: ${{secrets.S3_SECRET_KEY}}
-    #             path-format: $(prefix)/hazel/latest/$(file)
-    #             directories: .result
-    #             endpoint: ${{secrets.S3_ENDPOINT}}
-    #             prefix: /noelware/artifacts
-    #             region: us-east-1
-    #             bucket: august
-    # nix-build:
-    #     name: Nix Build
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #         - name: Checkout source code
-    #           uses: actions/checkout@v4
-
-    #         - name: Install `nix` binary
-    #           uses: cachix/install-nix-action@v27
-    #           with:
-    #               nix_path: nixpkgs=channel:nixos-unstable
-
-    #         - name: Setup Cachix
-    #           uses: cachix/cachix-action@v15
-    #           with:
-    #               name: noelware
-    #               authToken: ${{secrets.CACHIX_AUTH_TOKEN}}
-
-    #         - name: Build `hazel` binary
-    #           run: nix build .#hazel
-    # docker:
-    #     name: Build Docker Image [${{matrix.dockerfile}}]
-    #     runs-on: ubuntu-latest
-    #     strategy:
-    #         fail-fast: true
-    #         matrix:
-    #             dockerfile:
-    #                 - debian
-    #                 - alpine
-    #             include:
-    #                 - dockerfile: debian
-    #                   suffix: ""
-    #                 - dockerfile: alpine
-    #                   suffix: "-alpine"
-    #     steps:
-    #         - name: Checkout source code
-    #           uses: actions/checkout@v4
-
-    #         - name: Get Git tag
-    #           uses: auguwu/git-tag-action@master
-    #           id: tag
-
-    #         - name: Get commit hash
-    #           id: commit-hash
-    #           run: echo "commit=$(git rev-parse --short=8 $GITHUB_SHA)" >> $GITHUB_OUTPUT
-
-    #         - name: Login into Noelware's Container Registry
-    #           uses: docker/login-action@v3
-    #           with:
-    #             username: noelbot
-    #             password: ${{secrets.REGISTRY_PASSWORD}}
-    #             registry: cr.noelware.cloud
-
-    #         - name: Set up QEMU
-    #           uses: docker/setup-qemu-action@v3
-
-    #         - name: Set up Docker Buildx
-    #           uses: docker/setup-buildx-action@v3
-
-    #         - name: Build and push!
-    #           uses: docker/build-push-action@v6
-    #           with:
-    #               provenance: false
-    #               platforms: linux/amd64,linux/arm64
-    #               cache-from: type=gha
-    #               cache-to: type=gha
-    #               context: .
-    #               file: ./distribution/docker/${{matrix.dockerfile}}.Dockerfile
-    #               push: true
-    #               sbom: true
-    #               tags: |
-    #                   cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}.${{steps.tag.outputs.minor}}${{matrix.suffix}},
-    #                   cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.major}}${{matrix.suffix}},
-    #                   cr.noelware.cloud/noelware/hazel:${{steps.tag.outputs.version}}${{matrix.suffix}},
-    #                   cr.noelware.cloud/noelware/hazel:${{matrix.dockerfile == 'alpine' && 'alpine' || 'latest' }}
-    #               labels: |
-    #                   org.opencontainers.image.title=hazel
-    #                   org.opencontainers.image.description="🐻‍❄️🪶 Minimal, and easy HTTP proxy to map storage provider items into HTTP endpoints"
-    #                   org.opencontainers.image.version=${{steps.tag.outputs.version}}
-    #                   org.opencontainers.image.revision=${{steps.commit-hash.outputs.commit}}
-    #                   org.opencontainers.image.licenses=Apache-2.0
-    #                   org.opencontainers.image.documentation=https://noelware.org/hazel
-    #                   org.opencontainers.image.source=https://github.com/Noelware/hazel/tree/${{steps.commit-hash.outputs.commit}}
+    #             environment: production
+    #             release: ${{steps.tag.outputs.version}}

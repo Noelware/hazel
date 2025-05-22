@@ -41,7 +41,17 @@
     devShells = eachSystem (system: let
       pkgs = nixpkgsFor system;
     in {
-      default = import ./nix/devshell.nix {inherit pkgs;};
+      default = pkgs.callPackage ./nix/devshell.nix {};
+    });
+
+    packages = eachSystem (system: let
+      inherit (nixpkgsFor system) callPackage;
+
+      hazel = callPackage ./nix/package.nix {};
+    in {
+      inherit hazel;
+
+      default = hazel;
     });
   };
 }
