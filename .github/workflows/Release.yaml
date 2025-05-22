@@ -111,7 +111,8 @@ jobs:
               if: matrix.runner != 'windows-latest'
               run: .ci/${{contains(matrix.runner, 'apple-') && 'macos' || 'linux'}}/release
               env:
-                BUILDFLAGS: "--target ${{matrix.target}} ${{matrix.buildflags}}"
+                BUILDTARGET: ${{matrix.target}}
+                BUILDFLAGS: ${{matrix.buildflags}}
                 CARGOFLAGS: ${{env.CARGOFLAGS}}
                 RUSTFLAGS: ${{matrix.rustflags}}
                 CARGO: ${{matrix.cross && 'cross' || 'cargo'}}

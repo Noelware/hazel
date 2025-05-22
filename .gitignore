@@ -519,6 +519,7 @@ config.toml
 !Cargo.lock
 !src/bin
 .direnv/
+.result/
 result
 .data/
 data/

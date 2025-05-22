@@ -50,7 +50,7 @@ build() {
     echo "~> Performing compilation of binary \`hazel\`"
     echo "   $ RUSTFLAGS=\"$RUSTFLAGS\" $cargo $cargoflags build --release --locked --target $buildtarget --bin hazel $buildflags"
 
-    "$cargo $cargoflags build --release --locked --bin hazel $buildflags"
+    "$cargo $cargoflags build --release --locked --bin hazel --target $buildtarget $buildflags"
     if [ $? -ne 0 ]; then
         exit $?
     fi

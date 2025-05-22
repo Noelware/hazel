@@ -19,6 +19,7 @@ set -eou pipefail
 
 source "$(cd "$(dirname $0)" && pwd)/../_shared.sh"
 
+buildtarget=${BUILDTARGET:-}
 buildflags=${BUILDFLAGS:-}
 cargoflags=${CARGOFLAGS:-}
 rustflags=${RUSTFLAGS:-}
@@ -47,20 +48,20 @@ build() {
     noelware::startGroup "Build / Linux ($arch)"
 
     echo "~> Performing compilation of binary \`hazel\`"
-    echo "   $ RUSTFLAGS=\"$RUSTFLAGS\" $cargo $cargoflags build --release --locked --bin hazel $buildflags"
+    echo "   $ RUSTFLAGS=\"$RUSTFLAGS\" $cargo $cargoflags build --release --locked --bin hazel --target $buildtarget $buildflags"
 
-    "$cargo $cargoflags build --release --locked --bin hazel $buildflags"
+    "$cargo" $cargoflags build --release --locked --bin hazel --target $buildtarget $buildflags
     if [ $? -ne 0 ]; then
         exit $?
     fi
 
     pushd "$root/.result" >/dev/null
 
-    echo "$ mv $root/target/$buildtarget/release/hazel $root/.result/hazel-darwin-$arch"
-    mv "$root/target/$buildtarget/release/hazel" "$root/.result/hazel-darwin-$arch"
+    echo "$ mv $root/target/$buildtarget/release/hazel $root/.result/hazel-linux-$arch"
+    mv "$root/target/$buildtarget/release/hazel" "$root/.result/hazel-linux-$arch"
 
     echo "Generating checksums for binary"
-    shasum -a 256 "hazel-darwin-$arch" > ./"hazel-darwin-$arch.sha256"
+    shasum -a 256 "hazel-linux-$arch" > ./"hazel-linux-$arch.sha256"
 
     popd
 
