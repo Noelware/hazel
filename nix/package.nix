@@ -34,12 +34,7 @@ in
     src = ../.;
 
     nativeBuildInputs = [pkg-config];
-    buildInputs =
-      [openssl]
-      ++ (lib.optional stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
-        CoreFoundation
-        SystemConfiguration
-      ]));
+    buildInputs = [openssl];
 
     cargoLock.lockFile = ../Cargo.lock;
 

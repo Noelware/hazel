@@ -30,18 +30,11 @@
   glibc,
   powershell,
 }: let
-  darwinNativeBuildInputs = with darwin.apple_sdk.frameworks; [
-    SystemConfiguration
-    CoreFoundation
-    Security
-  ];
-
   linuxNativeBuildInputs = [mold lldb];
 
   nativeBuildInputs =
     [pkg-config]
-    ++ (lib.optional stdenv.isLinux linuxNativeBuildInputs)
-    ++ (lib.optional stdenv.isDarwin darwinNativeBuildInputs);
+    ++ (lib.optional stdenv.isLinux linuxNativeBuildInputs);
 
   buildInputs =
     [
