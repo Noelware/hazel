@@ -1,5 +1,5 @@
 # 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
-# Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+# Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ in
         cargo-deny
 
         rust-toolchain
-        hadolint
         openssl
         curl
         git

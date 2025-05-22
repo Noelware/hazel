@@ -1,5 +1,5 @@
 // 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
-// Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+// Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,24 +16,27 @@
 use super::middlewares;
 use crate::config::Config;
 use axum::{
+    Extension, Json, Router,
     body::Body,
     extract::Path,
-    http::{header, StatusCode},
+    http::{StatusCode, header},
     response::{IntoResponse, Response},
-    routing, Extension, Json, Router,
+    routing,
 };
-use azalia::remi::core::{Blob, StorageService as _};
-use azalia::remi::StorageService;
+use azalia::remi::{
+    StorageService,
+    core::{Blob, StorageService as _},
+};
 use serde_json::json;
 use std::any::Any;
 
 pub fn create_router(storage: StorageService, config: Config) -> Router {
     Router::new()
         .route("/healthz", routing::get(healthz))
-        .route("/*file", routing::get(query))
+        .route("/{*file}", routing::get(query))
         .route("/", routing::get(main))
         .layer(sentry_tower::NewSentryLayer::new_from_top())
-        .layer(sentry_tower::SentryHttpLayer::with_transaction())
+        .layer(sentry_tower::SentryHttpLayer::new().enable_transaction())
         .layer(tower_http::catch_panic::CatchPanicLayer::custom(panic_handler))
         .layer(axum::middleware::from_fn(middlewares::log))
         .layer(axum::middleware::from_fn(middlewares::request_id))

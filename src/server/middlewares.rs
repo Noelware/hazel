@@ -1,5 +1,5 @@
 // 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
-// Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+// Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::config::Config;
 use axum::{
     body::Body,
     extract::{FromRequestParts, MatchedPath, Request},
@@ -24,8 +25,6 @@ use axum::{
 use rand::distr::{Alphanumeric, SampleString};
 use std::{fmt::Display, ops::Deref, time::Instant};
 use tracing::{info, instrument};
-
-use crate::config::Config;
 
 /// Represents the generated `x-request-id` header that the server creates on each
 /// request invocation.

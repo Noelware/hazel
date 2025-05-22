@@ -1,5 +1,5 @@
 // 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
-// Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+// Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
 // limitations under the License.
 
 use azalia::{
-    config::env,
-    log::{writers, WriteLayer},
+    log::{WriteLayer, writers},
     remi::StorageService,
 };
 use hazel::{
-    config::{storage, Config},
+    config::{Config, storage},
     server,
 };
 use mimalloc::MiMalloc;
-use sentry::{types::Dsn, ClientOptions};
+use sentry::ClientOptions;
 use std::{
     borrow::Cow,
     cmp, io,
-    str::FromStr,
     sync::atomic::{AtomicUsize, Ordering},
 };
 use tracing::{info, level_filters::LevelFilter};
@@ -41,11 +39,7 @@ fn main() -> eyre::Result<()> {
 
     let workers = cmp::max(
         num_cpus::get(),
-        match env!("HAZEL_WORKER_THREADS") {
-            Ok(val) => val.parse()?,
-            Err(std::env::VarError::NotPresent) => num_cpus::get(),
-            Err(e) => return Err(e.into()),
-        },
+        azalia::config::env::try_parse_or("HAZEL_WORKER_THREADS", num_cpus::get)?,
     );
 
     let rt = tokio::runtime::Builder::new_multi_thread()
@@ -77,10 +71,7 @@ async fn real_main() -> eyre::Result<()> {
                 .unwrap_or_else(|| Cow::Borrowed("hazel")),
         ),
 
-        dsn: config
-            .sentry_dsn
-            .as_ref()
-            .map(|x| Dsn::from_str(x).expect("failed to parse sentry dsn")),
+        dsn: config.sentry_dsn.clone(),
 
         ..Default::default()
     });

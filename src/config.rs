@@ -1,5 +1,5 @@
 // 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
-// Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+// Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,14 @@ pub mod logging;
 pub mod opentelemetry;
 pub mod server;
 pub mod storage;
+pub(in crate::config) mod util;
 
-use azalia::config::{env, merge::Merge, FromEnv, TryFromEnv};
+use azalia::config::{
+    env::{self, TryFromEnv},
+    merge::Merge,
+};
 use eyre::Report;
+use sentry::types::Dsn;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 
@@ -34,7 +39,7 @@ pub struct Config {
     ///
     /// [`getsentry/self-hosted`]: https://github.com/getsentry/self-hosted
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub sentry_dsn: Option<String>,
+    pub sentry_dsn: Option<Dsn>,
 
     /// Configuration for configuring the default logging mechanism.
     #[serde(default)]
@@ -50,15 +55,17 @@ pub struct Config {
     pub server: server::Config,
 }
 
+pub const SERVER_NAME: &str = "HAZEL_SERVER_NAME";
+pub const SENTRY_DSN: &str = "HAZEL_SENTRY_DSN";
+
 impl TryFromEnv for Config {
-    type Output = Config;
     type Error = Report;
 
-    fn try_from_env() -> Result<Self::Output, Self::Error> {
+    fn try_from_env() -> Result<Self, Self::Error> {
         Ok(Config {
-            server_name: env!("HAZEL_SERVER_NAME", optional),
-            sentry_dsn: env!("HAZEL_SENTRY_DSN", optional),
-            logging: logging::Config::from_env(),
+            server_name: env::try_parse_optional(SERVER_NAME)?,
+            sentry_dsn: env::try_parse_optional::<_, sentry::types::Dsn>(SENTRY_DSN)?,
+            logging: logging::Config::try_from_env()?,
             storage: storage::Config::try_from_env()?,
             server: server::Config::try_from_env()?,
         })
@@ -75,7 +82,7 @@ impl Config {
             return Some(PathBuf::from("./config.toml"));
         }
 
-        env!("HAZEL_CONFIG_FILE")
+        std::env::var("HAZEL_CONFIG_FILE")
             .map(|path| path.parse::<PathBuf>().unwrap())
             .map(|path| {
                 if path.exists() && path.is_file() {
@@ -108,3 +115,27 @@ impl Config {
         Ok(config)
     }
 }
+
+macro_rules! impl_enum_based_env_value {
+    ($env:expr, {
+        on match fail: |$input:ident| $error:literal$( [$($arg:expr),*])?;
+
+        $($field:pat => $value:expr;)*
+    }) => {
+        match ::azalia::config::env::try_parse_or_else::<_, ::std::string::String>($env, ::core::default::Default::default()) {
+            Ok($input) => match &*$input.to_ascii_lowercase() {
+                $($field => $value,)*
+
+                _ => ::eyre::bail!($error$(, $($arg),*)?)
+            }
+
+            Err(::azalia::config::env::TryParseError::System(::std::env::VarError::NotUnicode(_))) => {
+                ::eyre::bail!("environment variable `${}` couldn't be loaded due to invalid unicode data", $env)
+            }
+
+            Err(e) => Err(::core::convert::Into::into(e)),
+        }
+    };
+}
+
+pub(crate) use impl_enum_based_env_value;

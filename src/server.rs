@@ -1,5 +1,5 @@
 // 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
-// Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+// Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::config::{server::ssl, Config};
+use crate::config::{Config, server::ssl};
 use axum::Router;
-use axum_server::{tls_rustls::RustlsConfig, Handle};
+use axum_server::{Handle, tls_rustls::RustlsConfig};
 use azalia::remi::StorageService;
 use eyre::Context;
 use std::time::Duration;
@@ -37,7 +37,7 @@ async fn start_https_server(config: &Config, ssl: &ssl::Config, router: Router) 
     let handle = Handle::new();
     tokio::spawn(shutdown_signal(Some(handle.clone())));
 
-    let addr = config.server.addr();
+    let addr = config.server.to_socket_addr();
     let config = RustlsConfig::from_pem_file(&ssl.cert, &ssl.cert_key).await?;
 
     info!(address = %addr, "listening on HTTPS");
@@ -49,7 +49,7 @@ async fn start_https_server(config: &Config, ssl: &ssl::Config, router: Router) 
 }
 
 async fn start_http_server(config: &Config, router: Router) -> eyre::Result<()> {
-    let addr = config.server.addr();
+    let addr = config.server.to_socket_addr();
     let listener = tokio::net::TcpListener::bind(addr).await?;
     info!(address = ?addr, "listening on HTTP");
 

@@ -1,5 +1,5 @@
 // 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
-// Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+// Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +15,28 @@
 
 pub mod ssl;
 
-use azalia::config::{env, merge::Merge, TryFromEnv};
-use azalia::TRUTHY_REGEX;
+use crate::config::util;
+use azalia::config::{
+    env::{self, TryFromEnv},
+    merge::Merge,
+};
 use serde::{Deserialize, Serialize};
-use std::{env::VarError, net::SocketAddr};
+use std::{collections::BTreeMap, net::SocketAddr};
 
+pub const HEADERS: &str = "HAZEL_SERVER_HEADERS";
+pub const HOST: &[&str; 2] = &["HAZEL_SERVER_HOST", "HOST"];
+pub const PORT: &[&str; 2] = &["HAZEL_SERVER_PORT", "PORT"];
+
+/// ## `[server]` table
+/// This configures the HTTP service that the API server creates.
 #[derive(Debug, Clone, Merge, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
-    /// Host to bind onto. `127.0.0.1` is for internal, `0.0.0.0` is for public.
+    /// A list of headers to append to all responses.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub headers: BTreeMap<String, String>,
+
+    /// The host to bind towards.
     #[serde(default = "__default_host")]
     pub host: String,
 
@@ -30,20 +44,14 @@ pub struct Config {
     #[serde(default = "__default_port")]
     pub port: u16,
 
-    /// Configures the use of HTTPS on the server.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ssl: Option<ssl::Config>,
 }
 
-impl Config {
-    pub fn addr(&self) -> SocketAddr {
-        format!("{}:{}", self.host, self.port).parse().unwrap()
-    }
-}
-
 impl Default for Config {
     fn default() -> Self {
-        Config {
+        Self {
+            headers: BTreeMap::new(),
             host: __default_host(),
             port: __default_port(),
             ssl: None,
@@ -51,66 +59,24 @@ impl Default for Config {
     }
 }
 
+impl Config {
+    pub fn to_socket_addr(&self) -> SocketAddr {
+        format!("{}:{}", self.host, self.port).parse().unwrap()
+    }
+}
+
 impl TryFromEnv for Config {
-    type Output = Config;
     type Error = eyre::Report;
 
-    fn try_from_env() -> Result<Self::Output, Self::Error> {
+    fn try_from_env() -> Result<Self, Self::Error> {
         Ok(Config {
-            host: match env!("HAZEL_SERVER_HOST") {
-                Ok(val) => val,
-                Err(VarError::NotPresent) => match env!("HOST") {
-                    Ok(val) => val,
-                    Err(VarError::NotPresent) => __default_host(),
-                    Err(VarError::NotUnicode(_)) => {
-                        return Err(eyre!(
-                            "failed to represent `HOST` environment variable as valid unicode"
-                        ))
-                    }
-                },
-
-                Err(VarError::NotUnicode(_)) => {
-                    return Err(eyre!(
-                        "failed to represent `HAZEL_SERVER_HOST` environment variable as valid unicode"
-                    ))
-                }
-            },
-
-            port: match env!("HAZEL_SERVER_PORT") {
-                Ok(val) => match val.parse::<u16>() {
-                    Ok(val) => val,
-                    Err(e) => return Err(eyre!(e.to_string())),
-                },
-
-                Err(VarError::NotPresent) => match env!("PORT") {
-                    Ok(val) => match val.parse::<u16>() {
-                        Ok(val) => val,
-                        Err(e) => return Err(eyre!(e.to_string())),
-                    },
-                    Err(VarError::NotPresent) => __default_port(),
-                    Err(VarError::NotUnicode(_)) => {
-                        return Err(eyre!(
-                            "failed to represent `PORT` environment variable as valid unicode"
-                        ))
-                    }
-                },
-
-                Err(VarError::NotUnicode(_)) => {
-                    return Err(eyre!(
-                        "failed to represent `HAZEL_SERVER_PORT` environment variable as valid unicode"
-                    ))
-                }
-            },
-
-            ssl: match env!("HAZEL_SERVER_SSL_ENABLE") {
-                Ok(res) if TRUTHY_REGEX.is_match(&res) => Some(ssl::Config::try_from_env()?),
-                Ok(_) => None,
-
-                Err(std::env::VarError::NotUnicode(_)) => {
-                    return Err(eyre!("expected valid utf-8 for `HAZEL_SERVER_SSL_ENABLE`"));
-                }
-
-                Err(_) => None,
+            headers: env::try_parse(HEADERS).unwrap_or_else(|_| Default::default()),
+            host: env::try_parse_or_else(HOST[0], env::try_parse_or_else(HOST[1], __default_host())?)?,
+            port: env::try_parse_or_else(PORT[0], env::try_parse_or_else(PORT[1], __default_port())?)?,
+            ssl: match util::bool_env(ssl::ENABLED) {
+                Ok(true) => ssl::Config::try_from_env().map(Some)?,
+                Ok(false) => None,
+                Err(e) => return Err(e),
             },
         })
     }
@@ -121,7 +87,6 @@ fn __default_host() -> String {
     String::from("0.0.0.0")
 }
 
-#[inline]
-fn __default_port() -> u16 {
+const fn __default_port() -> u16 {
     8989
 }

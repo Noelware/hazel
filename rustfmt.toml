@@ -1,5 +1,5 @@
 # 🪶 Hazel: Easy to use read-only proxy to map objects to URLs
-# Copyright 2022-2024 Noelware, LLC. <team@noelware.org>
+# Copyright 2022-2025 Noelware, LLC. <team@noelware.org>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-use_field_init_shorthand = true
+### STABLE FEATURES
+array_width = 90
+max_width = 115
 match_arm_leading_pipes = "Preserve"
+newline_style = "Unix"
+single_line_let_else_max_width = 0
+use_field_init_shorthand = true
 use_try_shorthand = true
-newline_style = "Unix"               # keep it consistent
-max_width = 120
-edition = "2021"
+
+### NIGHTLY FEATURES
+binop_separator = "Back"
+combine_control_expr = true
+comment_width = 90
+condense_wildcard_suffixes = true
+group_imports = "One"
+imports_granularity = "Crate"
+overflow_delimited_expr = true
