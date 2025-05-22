@@ -56,7 +56,7 @@ jobs:
         strategy:
             fail-fast: true
             matrix:
-                runner: [windows-latest, macos-latest, ubuntu-latest]
+                runner: [windows-latest, macos-latest, ubuntu-24.04]
         steps:
             - uses: actions/checkout@v4
             - uses: dtolnay/rust-toolchain@nightly
