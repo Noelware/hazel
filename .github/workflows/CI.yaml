@@ -44,21 +44,21 @@ on:
             - LICENSE
             - renovate.json
 permissions:
+    contents: read
     checks: write
+concurrency:
+    group: ${{github.workflow}}-${{github.ref}}
+    cancel-in-progress: true
 jobs:
     rust:
-        name: Rust [${{matrix.runner}}]
+        name: "Rust / ${{matrix.runner == 'ubuntu-24.04' && 'Linux (x64)' || matrix.runner == 'linux-aarch64' && 'Linux (aarch64)' || matrix.runner == 'macos-latest' && 'macOS (x64)' || matrix.runner == 'macos-14-xlarge' && 'macOS (aarch64)' || matrix.runner == 'windows-latest' && 'Windows (x64)'}}"
         runs-on: ${{matrix.runner}}
         strategy:
             matrix:
-                rust-version: [stable, nightly]
                 runner: [windows-latest, macos-latest, ubuntu-latest]
         steps:
             - uses: actions/checkout@v4
-            - uses: dtolnay/rust-toolchain@master
-              with:
-                toolchain: ${{matrix.rust-version}}
-
+            - uses: dtolnay/rust-toolchain@nightly
             - uses: Swatinem/rust-cache@v2
             - run: .ci/windows/Setup.ps1
               if: matrix.runner == 'windows-latest'
