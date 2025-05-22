@@ -10,14 +10,15 @@ Hazel is Noelware's microservice to proxy our objects that we publish (like `art
 
 ## Installation
 ### Install Script
-**WARNING** -- Please install the scripts first and audit them before running.
+> [!IMPORTANT]
+> Please install the scripts first and audit them before running.
 
 ```shell
 # Unix:
-$ curl -fsSL https://i.noelware.org/hazel | sh -
+$ curl -fsSL https://noelware.org/x/hazel | sh -
 
 # Windows:
-$ irm https://i.noelware.org/hazel.ps1 | iex
+$ irm https://noelware.org/x/hazel.ps1 | iex
 ```
 
 ### Docker
@@ -37,22 +38,21 @@ The image can consist with multiple tags for styles on how to deploy to your env
 > ```shell
 > $ docker volume create hazel
 > ```
-
-> [!NOTE]
+>
 > You can substitute `hazel` with any volume name, but you will have to change `hazel` to the volume
 > name in later examples if you went with creating a volume with `docker volume`.
 >
 > For regular filesystem-mounted directories, you will need to change the ownership of the directory so
-> the server can read & write to it. You can use the `chown` command to do so:
+> the server can read and write to it. You can use the `chown` command to do so:
 >
 > ```shell
 > $ chown -R 1001:1001 <directory>
 > ```
 
-Now, we can pull the image from [Noelware's Container Registry](https://docker.noelware.org):
+Now, we can pull the image from [Noelware's Container Registry](https://cr.noelware.cloud):
 
 ```shell
-$ docker pull docker.noelware.org/noelware/hazel
+$ docker pull cr.noelware.cloud/noelware/hazel
 ```
 
 Now, we can run the container!
@@ -62,7 +62,7 @@ Now, we can run the container!
 $ docker run -d -p 8989:8989 --name hazel \
     -e HAZEL_SERVER_NAME=my-hazel-instance \
     -v /var/lib/noelware/hazel/data:my-volume \
-    docker.noelware.org/noelware/hazel
+    cr.noelware.cloud/noelware/hazel
 ```
 
 ### Helm Chart
@@ -77,43 +77,7 @@ On a NixOS machine, you can use the [`nixpkgs-noelware`] overlay to install a Ha
 }
 ```
 
-It'll use a filesystem mapping in `/var/lib/noelware/hazel/data`, but can be overwritten with `services.hazel.fsPath`.
-
-<!--
-Now, we can pull the image from [Noelware's Container Registry](https://cr.noelware.cloud):
-
-```shell
-$ docker pull cr.noelware.cloud/hazel/hazel
-```
-
-Now, we can run the container!
-
-```shell
-# Using -v is an optional step if you're not using the local
-# filesystem.
-$ docker run -d -p 8989:8989 --name hazel \
-    -e HAZEL_SERVER_NAME=my-hazel-instance \
-    cr.noelware.cloud/hazel/hazel
-```
-
-### Helm
-Hazel does provide a Helm distribution, but it is not available as of yet!
-
-## Configuration
-Hazel uses a standard YAML configuration file that can be used to configure the proxy, as **Hazel** is convention over configuration, it will proxy over the local filesystem under `/var/lib/noelware/hazel` on Linux or `$ROOT/.data` on other operating systems as there is no convention yet.
-
-Hazel supports the local filesystem and Amazon S3 as Hazel is powered by the [remi-rs](https://github.com/Noelware/remi-rs) library.
-
-<!--
-### Secure Strings
-To prevent leaking sensitive data in configuration files, you can embed environment variables to create a secure string, which will allow you to use the `${}` syntax to load up an environment variable and be used by that, like in Bash.
-
-```yaml
-sentry_dsn: ${HAZEL_SENTRY_DSN:-}
-```
-
-This will look-up the `HAZEL_SENTRY_DSN` environment variable, if it exists, the result will be the contents of the environment variable, otherwise it'll return "null" (or anything after `:-`).
--->
+[`nixpkgs-noelware`]: https://github.com/Noelware/nixpkgs-noelware
 
 ## Contributing
 Thanks for considering contributing to **hazel**! Before you boop your heart out on your keyboard ✧ ─=≡Σ((( つ•̀ω•́)つ, we recommend you to do the following:

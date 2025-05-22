@@ -150,6 +150,23 @@ jobs:
                 prefix: /artifacts
                 region: us-east-1
                 bucket: noelware
+    publish-scripts:
+        name: "CI / Publish Installation Scripts"
+        runs-on: ubuntu-24.04
+        needs: [binary]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: Noelware/s3-action@v2
+              with:
+                enforce-path-access-style: true
+                access-key-id: ${{secrets.S3_ACCESS_KEY}}
+                path-format: "$(prefix)/hazel/$(file)"
+                directories: distribution/installation-scripts
+                secret-key: ${{secrets.S3_SECRET_KEY}}
+                endpoint: ${{secrets.S3_ENDPOINT}}
+                prefix: /artifacts
+                region: us-east-1
+                bucket: noelware
     nix-build:
         name: "Build / Nix"
         runs-on: ubuntu-24.04
