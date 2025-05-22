@@ -54,6 +54,7 @@ jobs:
         name: "Rust / ${{matrix.runner == 'ubuntu-24.04' && 'Linux (x64)' || matrix.runner == 'linux-aarch64' && 'Linux (aarch64)' || matrix.runner == 'macos-latest' && 'macOS (x64)' || matrix.runner == 'macos-14-xlarge' && 'macOS (aarch64)' || matrix.runner == 'windows-latest' && 'Windows (x64)'}}"
         runs-on: ${{matrix.runner}}
         strategy:
+            fail-fast: true
             matrix:
                 runner: [windows-latest, macos-latest, ubuntu-latest]
         steps:
