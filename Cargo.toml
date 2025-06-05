@@ -77,7 +77,7 @@ features = [
 [build-dependencies]
 chrono = "0.4.38"
 rustc_version = "0.4.1"
-which = "7.0.0"
+which = "8.0.0"
 
 [profile.release]
 codegen-units = 1 # use a single codegen unit
