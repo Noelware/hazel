@@ -15,10 +15,10 @@
 
 use crate::config::{Config, server::ssl};
 use axum::Router;
-use axum_server::{Handle, tls_rustls::RustlsConfig};
+use axum_server::{Address, Handle, tls_rustls::RustlsConfig};
 use azalia::remi::StorageService;
 use eyre::Context;
-use std::time::Duration;
+use std::{net::SocketAddr, time::Duration};
 
 mod middlewares;
 mod routes;
@@ -54,12 +54,15 @@ async fn start_http_server(config: &Config, router: Router) -> eyre::Result<()> 
     info!(address = ?addr, "listening on HTTP");
 
     axum::serve(listener, router.into_make_service())
-        .with_graceful_shutdown(shutdown_signal(None))
+        .with_graceful_shutdown(shutdown_signal::<SocketAddr>(None))
         .await
         .context("failed to run HTTP server")
 }
 
-async fn shutdown_signal(handle: Option<Handle>) {
+async fn shutdown_signal<A>(handle: Option<Handle<A>>)
+where
+    A: Address,
+{
     let ctrl_c = async {
         tokio::signal::ctrl_c().await.expect("unable to install CTRL+C handler");
     };

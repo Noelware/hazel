@@ -21,32 +21,32 @@ edition = "2024"
 authors = ["Noel Towa <cutie@floofy.dev>"]
 homepage = "https://noelware.org/oss/hazel"
 documentation = "https://docs.noelware.org/hazel/current"
-rust-version = "1.85"
+rust-version = "1.92"
 
 [dependencies]
-axum = { version = "0.8.0", features = ["macros"] }
-axum-server = { version = "0.7.1", features = ["tls-rustls"] }
-color-eyre = "0.6.4"
+axum = { version = "0.8.8", features = ["macros"] }
+axum-server = { version = "0.8.0", features = ["tls-rustls"] }
+color-eyre = "0.6.5"
 dotenvy = "0.15.7"
 eyre = "0.6.12"
 mimalloc = "0.1.43"
 num_cpus = "1.16.0"
 rand = "0.9.0"
-sentry = "0.42.0"
-sentry-tower = { version = "0.42.0", features = ["axum", "http"] }
-sentry-tracing = "0.42.0"
+sentry = "0.46.0"
+sentry-tower = { version = "0.46.0", features = ["axum", "http"] }
+sentry-tracing = "0.46.0"
 serde = "1.0.215"
 serde_json = "1.0.133"
-tokio = { version = "1.41.1", features = ["rt", "rt-multi-thread", "signal"] }
+tokio = { version = "1.49.0", features = ["rt", "rt-multi-thread", "signal"] }
 toml = "0.9.0"
-tower-http = { version = "0.6.2", features = ["catch-panic"] }
+tower-http = { version = "0.6.8", features = ["catch-panic"] }
 tracing = "0.1.41"
 tracing-error = "0.2.1"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 url = { version = "2.5.4", features = ["serde"] }
 
 [dependencies.azalia]
-version = "0.1.11"
+version = "0.1.12"
 features = [
     "regex",
 
