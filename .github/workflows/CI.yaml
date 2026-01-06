@@ -58,7 +58,7 @@ jobs:
             matrix:
                 runner: [windows-latest, macos-latest, ubuntu-24.04]
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - uses: dtolnay/rust-toolchain@nightly
             - uses: Swatinem/rust-cache@v2
             - run: .ci/windows/Setup.ps1
@@ -80,7 +80,7 @@ jobs:
         name: '`cargo deny`'
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - uses: taiki-e/install-action@cargo-deny
               with:
                   tool: cargo-deny
@@ -90,7 +90,7 @@ jobs:
         name: Report Missing Dependencies
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - uses: taiki-e/install-action@cargo-machete
               with:
                   tool: cargo-machete
@@ -100,7 +100,7 @@ jobs:
         name: Clippy
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
             - uses: dtolnay/rust-toolchain@master
               with:
                 toolchain: stable
