@@ -31,7 +31,7 @@ dotenvy = "0.15.7"
 eyre = "0.6.12"
 mimalloc = "0.1.43"
 num_cpus = "1.16.0"
-rand = "0.9.0"
+rand = "0.10.0"
 sentry = "0.46.0"
 sentry-tower = { version = "0.46.0", features = ["axum", "http"] }
 sentry-tracing = "0.46.0"
