@@ -229,7 +229,7 @@ jobs:
                     org.opencontainers.image.documentation=https://docs.noelware.org/hazel/${{steps.tag.outputs.version}}
                     org.opencontainers.image.source=https://github.com/Noelware/hazel/tree/${{steps.commit-hash.outputs.commit}}
 
-            - uses: docker/bake-action@v6
+            - uses: docker/bake-action@v7
               with:
                 targets: ${{matrix.kind}}-${{matrix.arch}}
                 provenance: true
