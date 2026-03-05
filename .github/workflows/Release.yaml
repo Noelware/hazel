@@ -208,7 +208,7 @@ jobs:
                 username: noelbot
                 password: ${{secrets.NOEL_REGISTRY_PASSWORD}}
 
-            - uses: docker/metadata-action@v5
+            - uses: docker/metadata-action@v6
               id: meta
               with:
                 flavor: |
