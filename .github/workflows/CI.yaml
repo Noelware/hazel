@@ -107,6 +107,6 @@ jobs:
                 components: clippy, rustfmt
 
             - uses: Swatinem/rust-cache@v2
-            - uses: auguwu/clippy-action@1.4.0
+            - uses: auguwu/clippy-action@1.5.0
               with:
                 token: ${{secrets.GITHUB_TOKEN}}
