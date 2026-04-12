@@ -121,7 +121,7 @@ jobs:
               if: matrix.runner == 'windows-latest'
               run: .ci/windows/Release.ps1 -CargoFlags "${{env.CARGOFLAGS}}" -BuildFlags "${{matrix.buildflags}}"
 
-            - uses: softprops/action-gh-release@v2
+            - uses: softprops/action-gh-release@v3
               with:
                 files: ./.result/hazel-*
 
