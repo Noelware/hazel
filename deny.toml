@@ -34,7 +34,13 @@ targets = [
 version = 2
 ignore = [
     # there is no safe way to ignore `paste`.
-    "RUSTSEC-2024-0436"
+    "RUSTSEC-2024-0436",
+
+    # remi-s3 is unaffected by CRL usage within this advisory.
+    # It should be patched, but we appear to be pulling in the legacy S3 HTTPS client.
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+    "RUSTSEC-2026-0104",
 ]
 
 [bans]
