@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM rust:1.95-slim-trixie AS build
+FROM rust:1.96-slim-trixie AS build
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update &&                          \

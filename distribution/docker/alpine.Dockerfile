@@ -14,7 +14,7 @@
 # limitations under the License.
 
 ###### BINARY BUILD
-FROM rust:1.95-alpine3.23 AS build
+FROM rust:1.96-alpine3.23 AS build
 
 RUN apk upgrade && apk add --no-cache \
     git                               \
