@@ -21,7 +21,7 @@ edition = "2024"
 authors = ["Noel Towa <cutie@floofy.dev>"]
 homepage = "https://noelware.org/oss/hazel"
 documentation = "https://docs.noelware.org/hazel/current"
-rust-version = "1.92"
+rust-version = "1.95"
 
 [dependencies]
 axum = { version = "0.8.8", features = ["macros"] }
