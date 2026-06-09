@@ -40,7 +40,7 @@ RUN cargo build                                                               \
     --bin hazel
 
 ##### FINAL STAGE
-FROM alpine:3.23
+FROM alpine:3.24
 
 RUN apk upgrade && apk add --no-cache bash tini curl libgcc
 
