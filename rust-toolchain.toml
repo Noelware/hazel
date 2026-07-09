@@ -14,7 +14,7 @@
 # limitations under the License.
 
 [toolchain]
-channel = "1.96"
+channel = "1.97"
 profile = "minimal"
 components = [
     "rustc",
