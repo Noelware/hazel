@@ -152,7 +152,7 @@ jobs:
                 bucket: noelware
     publish-scripts:
         name: "CI / Publish Installation Scripts"
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-26.04
         needs: [binary]
         steps:
             - uses: actions/checkout@v7
@@ -169,7 +169,7 @@ jobs:
                 bucket: noelware
     nix-build:
         name: "Build / Nix"
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-26.04
         if: github.repository == 'Noelware/hazel'
         steps:
             - uses: actions/checkout@v7
@@ -185,7 +185,7 @@ jobs:
             - run: nix build .#hazel
     docker:
         name: "Docker / Build [${{matrix.kind}} (${{matrix.arch}})]"
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-26.04
         if: github.repository == 'Noelware/hazel'
         outputs:
             docker-meta: ${{steps.meta.outputs.json}}
@@ -240,7 +240,7 @@ jobs:
 
     manifests:
         name: "Docker / Manifests"
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-26.04
         if: github.repository == 'Noelware/hazel'
         needs: [docker]
         steps:
